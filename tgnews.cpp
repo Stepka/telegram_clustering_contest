@@ -6,71 +6,182 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 Copyright (c) 2019 Stepan Mamontov (Panda Team)
 */
 
+
+#if defined(__linux__)
+	#include <dirent.h>
+#endif
+
+#if defined(_WIN64)
+	#include <filesystem>
+#endif
+
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include "metric/modules/mapping.hpp"
+#include "modules/json.hpp"
 
 
-int main() {
+using json = nlohmann::json;
+namespace  fs = std::filesystem;
+
+
+const std::string LANGUAGES_MODE_COMMAND = "languages";
+const std::string NEWS_MODE_COMMAND = "news";
+const std::string CATEGORIES_MODE_COMMAND = "categories";
+const std::string THREAD_MODE_COMMAND = "threads";
+const std::string TOP_MODE_COMMAND = "top";
+
+enum Mode { UNKNOWN_MODE, LANGUAGES_MODE, NEWS_MODE, CATEGORIES_MODE, THREAD_MODE, TOP_MODE };
+
+////////////////////////////
+
+
+std::vector<std::string> readAllPathsFromDir(std::string dirname)
+{
+	std::vector<std::string> path_names;
+
+	#if defined(__linux__)
+		DIR *dp;
+		struct dirent *dirp;
+		if((dp  = opendir(dirname.c_str())) == NULL) {
+			std::cout << "Error(" << errno << ") opening " << dirname << std::endl;
+			return std::vector<std::vector<double>>();
+		}
+
+		while ((dirp = readdir(dp)) != NULL) {
+			std::string fn = std::string(dirp->d_name);
+			path_names.push_back(dirname + "/" + fn);
+		}
+		closedir(dp);
+	#endif
+	
+	#if defined(_WIN64)
+		for (const auto & entry : fs::directory_iterator(dirname))
+		{
+			std::string fn = entry.path().filename().string();
+			
+			path_names.push_back(entry.path().string());
+
+			//std::fstream fin;
+
+			//fin.open(filename, std::ios::in);
+		}
+	#endif
+
+	return path_names;
+}
+
+
+std::vector<std::string> readFilePaths(std::string dirname, bool recursively = true)
+{
+	std::vector<std::string> files_paths;
+
+	std::vector<std::string> all_paths = readAllPathsFromDir(dirname);
+
+	for (auto fp : all_paths)
+	{
+		const fs::path path(fp);
+		std::error_code ec; // For using the non-throwing overloads of functions below.
+		if (fs::is_directory(path, ec))
+		{ 
+			std::vector<std::string> dir_files = readFilePaths(fp);
+			files_paths.insert( files_paths.end(), dir_files.begin(), dir_files.end() );
+		}
+		if (ec)
+		{
+			std::cerr << "Error in is_directory: " << ec.message();
+		}
+		if (fs::is_regular_file(path, ec))
+		{
+			if (fp.size() > 5 && fp.substr(fp.size() - 5) == ".html")
+			{
+				files_paths.push_back(fp);
+			}
+		}
+		if (ec) 
+		{
+			std::cerr << "Error in is_regular_file: " << ec.message();
+		}
+	}
+
+	return files_paths;
+}
+
+
+////////////////////////////
+
+int main(int argc, char *argv[]) 
+{
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
+	
+	/// Select working mode
 
-	std::vector<std::vector<float>> data{
-		   {0, 0, 0, 0, 0}, 
-		   {1.74120000000000, 4.07812000000000, -0.0927036000000, 41.7888000000000, 41.7888000000000},
-		   {7.75309000000000, 16.2466000000000, 3.03956000000000, 186.074000000000, 186.074000000000},
-		   {2.85493000000000, 3.25380000000000, 2.50559000000000, 68.5184000000000, 68.5184000000000},
-		   {5.81414000000000, 8.14015000000000, 3.22950000000000, 139.539000000000, 139.539000000000},
-		   {2.57927000000000, 2.63399000000000, 2.46802000000000, 61.9026000000000, 61.9026000000000} };
+	Mode mode = UNKNOWN_MODE;
+	std::string data_path = "assets";
 
-	auto[assignments, means, counts] = metric::kmeans(data, 4);
-
-
-	std::cout << "assignments:" << std::endl;
-	for (size_t i = 0; i < assignments.size(); i++) 
+	if (argc > 1)
 	{
-		if (i < assignments.size() - 1)
+		if (argv[1] == LANGUAGES_MODE_COMMAND)
 		{
-			std::cout << assignments[i] << ", ";
+			mode = LANGUAGES_MODE;
+		}
+		else if (argv[1] == NEWS_MODE_COMMAND)
+		{
+			mode = NEWS_MODE;
+		}
+		else if (argv[1] == CATEGORIES_MODE_COMMAND)
+		{
+			mode = CATEGORIES_MODE;
+		}
+		else if (argv[1] == THREAD_MODE_COMMAND)
+		{
+			mode = THREAD_MODE;
+		}
+		else if (argv[1] == TOP_MODE_COMMAND)
+		{
+			mode = TOP_MODE;
 		}
 		else
 		{
-			std::cout << assignments[i] << std::endl;
+			std::cout << "Unknown command: " << argv[1] << std::endl; 
+			return EXIT_FAILURE; 
 		}
 	}
-	std::cout << '\n';
-
-	std::cout << "means:" << std::endl;
-	for (size_t i = 0; i < means.size(); i++)
+	else
 	{
-		for (size_t j = 0; j < means[i].size(); j++)
-		{
-			if (j < means[i].size() - 1)
-			{
-				std::cout << means[i][j] << ", ";
-			}
-			else
-			{
-				std::cout << means[i][j] << std::endl;
-			}
-		}
+		std::cout << "Unspecified mode: you should specify working mode. Possible modes are: 'languages', 'news', 'categories', 'threads', 'top'." << std::endl;  
+		return EXIT_FAILURE;
 	}
-	std::cout << '\n';
 
-	std::cout << "counts:" << std::endl;
-	for (size_t i = 0; i < counts.size(); i++)
+	if (argc > 2)
 	{
-		if (i < counts.size() - 1)
-		{
-			std::cout << counts[i] << ", ";
-		}
-		else
-		{
-			std::cout << counts[i] << std::endl;
-		}
+		data_path = argv[2];
+		std::cout << "Using data path: " << data_path << std::endl;  
 	}
-	std::cout << '\n' << std::endl;
+	else
+	{
+		std::cout << "You haven't specified data path, default path will be used instead: " << data_path << std::endl;  
+	}
+
+	std::cout << std::endl;  
+
+	/// Load data
+
+	auto file_names = readFilePaths(data_path);
+
+	for (auto f : file_names)
+	{
+		std::cout << f << std::endl;  
+	}
+	std::cout << std::endl;  
+		
+	std::cout << file_names.size() << std::endl;  
+
+
+	///
 
     return 0;
 }
