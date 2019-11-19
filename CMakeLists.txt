@@ -7,12 +7,14 @@ find_package(Boost)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}
-    )
+    )  
+	  
+file(COPY "assets" DESTINATION ".")
 
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 add_executable(tgnews tgnews.cpp) 
- 
+  
 target_link_libraries(tgnews ${Boost_LIBRARIES})
 set_target_properties(tgnews PROPERTIES CXX_STANDARD 17)
 

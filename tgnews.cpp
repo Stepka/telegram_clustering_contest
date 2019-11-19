@@ -34,6 +34,11 @@ const std::string TOP_MODE_COMMAND = "top";
 
 enum Mode { UNKNOWN_MODE, LANGUAGES_MODE, NEWS_MODE, CATEGORIES_MODE, THREAD_MODE, TOP_MODE };
 
+/// Language consts
+enum Language { UNKNOWN_LANGUAGE, ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE };
+size_t num_language_samples = 300;
+double language_score_min_level = 0.1;
+
 ////////////////////////////
 
 
@@ -85,8 +90,11 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 		std::error_code ec; // For using the non-throwing overloads of functions below.
 		if (fs::is_directory(path, ec))
 		{ 
-			std::vector<std::string> dir_files = readFilePaths(fp);
-			files_paths.insert( files_paths.end(), dir_files.begin(), dir_files.end() );
+			if (recursively)
+			{
+				std::vector<std::string> dir_files = readFilePaths(fp, recursively);
+				files_paths.insert(files_paths.end(), dir_files.begin(), dir_files.end());
+			}
 		}
 		if (ec)
 		{
@@ -109,6 +117,108 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 }
 
 
+
+std::vector<std::string> readFileContent(std::string filename, char delimeter = ' ', int min_word_size = 2)
+{
+	std::vector<std::string> words;
+	std::string word;
+
+	std::fstream fin;
+
+	fin.open(filename, std::ios::in);
+
+	while (getline(fin, word, delimeter))
+	{
+		//std::cout << " -> " << word << std::endl;
+		if (word.size() >= min_word_size)
+		{
+			words.push_back(word);
+		}
+	}
+
+	return words;
+}
+
+std::vector<std::string> readVocabulary(std::string filename)
+{
+	std::vector<std::string> words;
+	std::string word;
+
+	std::fstream fin;
+
+	fin.open(filename, std::ios::in);
+
+	while (getline(fin, word))
+	{
+		words.push_back(word);
+	}
+
+	return words;
+}
+
+double countVocabFrequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
+{
+	int score = 0;
+
+	for (auto i = 0; i < sampling_indexes.size(); i++)
+	{
+		std::string sample = content[sampling_indexes[i]];
+		for (auto word : vocab)
+		{
+			if (sample == word)
+			{
+				score++;
+			}
+		}
+	}
+
+	return (double) score / sampling_indexes.size();
+}
+
+Language checkLanguage(std::vector<std::string> content, std::vector<std::vector<std::string>> vocabs)
+{		
+    // Random sampleing 
+    std::vector<size_t> randomized_samples(content.size());
+    std::iota(randomized_samples.begin(), randomized_samples.end(), 0);
+	// shuffle samples after all was processed		
+    std::shuffle(randomized_samples.begin(), randomized_samples.end(), std::mt19937 { std::random_device {}() });
+
+	if (num_language_samples < randomized_samples.size())
+	{
+		randomized_samples.resize(num_language_samples);
+	}	  
+	
+	std::vector<Language> languages = { ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE };
+	std::vector<double> scores(2);
+
+	scores[0] = countVocabFrequency(content, randomized_samples, vocabs[0]);
+	scores[1] = countVocabFrequency(content, randomized_samples, vocabs[1]);
+	
+	//for (auto word : content)
+	//{
+	//	std::cout << word << " ";  
+	//}
+	//std::cout << std::endl;   
+	//std::cout << "Num words: " << content.size() << std::endl;  
+	//std::cout << std::endl; 
+	//std::cout << "Samples size: " << randomized_samples.size() << std::endl;  
+	//std::cout << std::endl;
+	//std::cout << "English score: " << scores[0] << std::endl;  
+	//std::cout << std::endl;  
+	//std::cout << "Russian score: " << scores[1] << std::endl;   
+	//std::cout << std::endl;  
+
+	auto max_score_iterator = std::max_element(scores.begin(), scores.end());
+	auto max_score_index = std::distance(scores.begin(), max_score_iterator);
+
+	if (scores[max_score_index] > language_score_min_level)
+	{
+		return languages[max_score_index];
+	}
+
+	return UNKNOWN_LANGUAGE;
+}
+
 ////////////////////////////
 
 int main(int argc, char *argv[]) 
@@ -120,7 +230,7 @@ int main(int argc, char *argv[])
 	/// Select working mode
 
 	Mode mode = UNKNOWN_MODE;
-	std::string data_path = "assets";
+	std::string data_path = "data";
 
 	if (argc > 1)
 	{
@@ -171,17 +281,39 @@ int main(int argc, char *argv[])
 	/// Load data
 
 	auto file_names = readFilePaths(data_path);
-
-	for (auto f : file_names)
-	{
-		std::cout << f << std::endl;  
-	}
+	std::cout << "Num files: " << file_names.size() << std::endl;  
 	std::cout << std::endl;  
-		
-	std::cout << file_names.size() << std::endl;  
 
+	/// Check language
+	
+	// load vocabularies  with top frequency words for each language
+	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc");
+	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc");
+	
 
-	///
+	for (auto i = 0; i < file_names.size(); i++)
+	{
+
+		auto content = readFileContent(file_names[i]);
+
+		auto language = checkLanguage(content, {top_english_words, top_russian_words});
+
+		switch (language)
+		{
+			case ENGLISH_LANGUAGE:
+				std::cout << file_names[i] << " is in english " << std::endl;  
+				break;
+
+			case RUSSIAN_LANGUAGE:
+				std::cout << file_names[i] << " is in russian " << std::endl;  
+				break;
+
+			default:
+				std::cout << file_names[i] << " is in unknown language " << std::endl;  
+				break;
+		}
+		std::cout << std::endl; 
+	}
 
     return 0;
 }
