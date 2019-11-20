@@ -161,7 +161,7 @@ std::vector<std::string> readFileContent(std::string filename, std::locale local
 
 	fin.open(filename, std::ios::in);
 	
-	std::cout << "Locale " << fin.getloc().c_str() << std::endl;
+	std::cout << "Locale " << fin.getloc().name() << std::endl;
 	
 
 	while (getline(fin, word, delimeter))
