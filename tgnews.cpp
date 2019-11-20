@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/locale.hpp>
 
 #include "metric/modules/mapping.hpp"
 #include "3rdparty/json.hpp"
@@ -159,10 +160,7 @@ std::vector<std::string> readFileContent(std::string filename, std::locale local
 	std::fstream fin;
     fin.imbue(locale);
 
-	fin.open(filename, std::ios::in);
-	
-	std::cout << "Locale " << fin.getloc().name() << std::endl;
-	
+	fin.open(filename, std::ios::in);	
 
 	while (getline(fin, word, delimeter))
 	{
@@ -283,15 +281,9 @@ std::vector<std::string> findDates(std::vector<std::string> content, std::unorde
 {
 	std::vector<std::string> dates;
 
-	auto& facet = std::use_facet<std::ctype<char>>(std::locale());
-
 	for (auto i = 0; i < content.size(); i++)
-	{
-		//std::string utf8_string = boost::locale::to_utf<char>(content[i], std::locale);
-		std::string str = content[i];
-		facet.tolower(&str[0], &str[0] + str.size());
-		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << boost::algorithm::to_lower_copy(content[i]) << " " << boost::algorithm::to_lower_copy(content[i], locale) << " " << str << std::endl;  
-		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
+	{ 
+		if (month_names.find(boost::locale::to_lower(content[i], locale)) != month_names.end())
 		{
 			std::cout << content[i] << std::endl; 
 		}
@@ -309,14 +301,19 @@ int main(int argc, char *argv[])
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
 	
+    // Create system default locale
+    boost::locale::generator gen;
 	#if defined(__linux__)
-		std::locale ru_locale("ru_RU.UTF-8");
+		std::locale ru_locale = gen("ru_RU.UTF-8");
 	#endif
 	
 	#if defined(_WIN64)
+		std::locale ru_boost_locale = gen("russian_russia.65001");
+		std::locale en_boost_locale = gen("english_us.65001");
 		std::locale ru_locale("russian_russia.65001");
 	#endif
-	std::locale::global(std::locale(ru_locale));
+	std::locale::global(ru_locale);	
+    std::cout.imbue(ru_locale);
 
 	
 	/// Select working mode
@@ -376,124 +373,79 @@ int main(int argc, char *argv[])
 
 	/// Load data
 
-	//auto file_names = selectHtmlFiles(data_path);
-	//std::cout << "Num files: " << file_names.size() << std::endl;  
-	//std::cout << std::endl;  
+	auto file_names = selectHtmlFiles(data_path);
+	std::cout << "Num files: " << file_names.size() << std::endl;  
+	std::cout << std::endl;  
 
-	///// Language detection
-	//
-	//// load vocabularies  with top frequency words for each language
-	//std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc");
-	//std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc");
-	//
-	//auto t1 = std::chrono::steady_clock::now();
-	//for (auto i = 0; i < file_names.size(); i++)
-	//{
-
-	//	auto content = readFileContent(file_names[i]);
-
-	//	auto language = checkLanguage(content, {top_english_words, top_russian_words});		
-
-	//	switch (language)
-	//	{
-	//		case ENGLISH_LANGUAGE:
-	//			std::cout << file_names[i] << " is in english " << std::endl;  
-	//			articles[file_names[i]] = language;
-	//			break;
-
-	//		case RUSSIAN_LANGUAGE:
-	//			std::cout << file_names[i] << " is in russian " << std::endl;  
-	//			articles[file_names[i]] = language;
-	//			break;
-
-	//		default:
-	//			std::cout << file_names[i] << " is in unknown language " << std::endl;  
-	//			break;
-	//	}
-
-	//	if (i % 1000 == 0)
-	//	{
-	//		auto t2 = std::chrono::steady_clock::now();
-	//		std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-	//		std::cout << std::endl;  
-	//		t1 = std::chrono::steady_clock::now();
-	//	}
-	//}
-
-	///// News detection
-	//
- //   std::unordered_map<std::string, int> english_month_names; 
-
-	//english_month_names["jan"] = 1;
-	//english_month_names["feb"] = 2;
-	//english_month_names["mar"] = 3;
-	//english_month_names["apr"] = 4;
-	//english_month_names["may"] = 5;
-	//english_month_names["jun"] = 6;
-	//english_month_names["jul"] = 7;
-	//english_month_names["aug"] = 8;
-	//english_month_names["sep"] = 9;
-	//english_month_names["oct"] = 10;
-	//english_month_names["nov"] = 11;
-	//english_month_names["dec"] = 12;
-
-	//english_month_names["january"] = 1;
-	//english_month_names["february"] = 2;
-	//english_month_names["march"] = 3;
-	//english_month_names["april"] = 4;
-	//english_month_names["may"] = 5;
-	//english_month_names["june"] = 6;
-	//english_month_names["jule"] = 7;
-	//english_month_names["august"] = 8;
-	//english_month_names["september"] = 9;
-	//english_month_names["october"] = 10;
-	//english_month_names["november"] = 11;
-	//english_month_names["december"] = 12;
-
-    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", ru_locale, 1, 12); 
-
-	//
-	//t1 = std::chrono::steady_clock::now();
-
-	//for (auto i = articles.begin(); i != articles.end(); i++) { 
-	//	std::cout << i->first << std::endl;  
-	//	auto content = readFileContent(i->first);
-	//	
-	//	//for (auto word : content)
-	//	//{
-	//	//	std::cout << word << " ";  
-	//	//}
-	//	std::cout << std::endl;   
-
-	//	switch (i->second)
-	//	{
-	//		case ENGLISH_LANGUAGE:
-	//			findDates(content, english_month_names); 
-	//			break;
-
-	//		case RUSSIAN_LANGUAGE:
-	//			findDates(content, russian_month_names);
-	//			break;
-
-	//		default:
-	//			break;
-	//	}
-	//	std::cout << std::endl;
- //   } 
-
-	for (auto i = russian_month_names.begin(); i != russian_month_names.end(); i++) 
+	/// Language detection
+	
+	// load vocabularies  with top frequency words for each language
+	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc", ru_boost_locale);
+	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc", en_boost_locale);
+	
+	auto t1 = std::chrono::steady_clock::now();
+	for (auto i = 0; i < file_names.size(); i++)
 	{
-		std::cout << i->first << " " << i->second << std::endl;
+
+		auto content = readFileContent(file_names[i], en_boost_locale);
+
+		auto language = checkLanguage(content, {top_english_words, top_russian_words});		
+
+		switch (language)
+		{
+			case ENGLISH_LANGUAGE:
+				std::cout << file_names[i] << " is in english " << std::endl;  
+				articles[file_names[i]] = language;
+				break;
+
+			case RUSSIAN_LANGUAGE:
+				std::cout << file_names[i] << " is in russian " << std::endl;  
+				articles[file_names[i]] = language;
+				break;
+
+			default:
+				std::cout << file_names[i] << " is in unknown language " << std::endl;  
+				break;
+		}
+
+		if (i % 1000 == 0)
+		{
+			auto t2 = std::chrono::steady_clock::now();
+			std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			std::cout << std::endl;  
+			t1 = std::chrono::steady_clock::now();
+		}
 	}
+
+	/// News detection
 	
-	auto content = readFileContent("../data/toy/2098296317912864886.html", ru_locale);
-	findDates(content, russian_month_names, ru_locale);
+    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", ru_boost_locale, 1, 12); 
+    std::unordered_map<std::string, int> english_month_names = readVocabularyToMap("assets/vocabs/english_month_names.voc", en_boost_locale, 1, 12); 
+
 	
-	std::locale::global(std::locale(""));
-	std::cout << std::endl;
-	std::string str = "ïÐîÑòî";
-	std::cout << boost::algorithm::to_lower_copy(str) << std::endl; 
-	std::cout << boost::algorithm::to_lower_copy(str, ru_locale) << std::endl; 
+	t1 = std::chrono::steady_clock::now();
+
+	for (auto i = articles.begin(); i != articles.end(); i++) { 
+		std::cout << i->first << std::endl;  
+		
+		std::vector<std::string> content;
+		switch (i->second)
+		{
+			case ENGLISH_LANGUAGE:
+				content = readFileContent(i->first, en_boost_locale);   
+				findDates(content, english_month_names, en_boost_locale); 
+				break;
+
+			case RUSSIAN_LANGUAGE:
+				content = readFileContent(i->first, ru_boost_locale); 
+				findDates(content, russian_month_names, ru_boost_locale);
+				break;
+
+			default:
+				break;
+		}
+		std::cout << std::endl;
+    } 
 
     return 0;
 }

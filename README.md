@@ -11,7 +11,7 @@ _Windows_
 ```bash
 mkdir build
 cd build
-cmake .. -A x64 -T llvm
+cmake .. -T llvm -A x64  -DBoost_NAMESPACE="libboost" -DBoost_COMPILER="-vc141"
 ```
 Then open solution in the Microsoft Visual Studio
 
