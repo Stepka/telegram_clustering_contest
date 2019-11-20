@@ -83,8 +83,8 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 				if (is_dir) {
 					if (recursively)
 					{
-						std::vector<std::string> dir_files = readAllPathsFromDir(dirname + "/" + fn, recursively);
-						path_names.insert(files_paths.end(), dir_files.begin(), dir_files.end());
+						std::vector<std::string> dir_files = readFilePaths(dirname + "/" + std::string(dirp->d_name), recursively);
+						path_names.insert(path_names.end(), dir_files.begin(), dir_files.end());
 					}
 				}
 				else
