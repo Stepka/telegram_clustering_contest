@@ -25,6 +25,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/locale.hpp>
 
 #include "metric/modules/mapping.hpp"
 #include "3rdparty/json.hpp"
@@ -189,6 +190,24 @@ std::vector<std::string> readVocabulary(std::string filename)
 	return words;
 }
 
+std::unordered_map<std::string, int> readVocabularyToMap(std::string filename, int start, int end)
+{
+	std::vector<std::string> vocab = readVocabulary(filename);
+    std::unordered_map<std::string, int> map; 
+
+	int i = start;
+	for (auto word : vocab)
+	{
+		if (start > end)
+		{
+			start = start;
+		}
+		map[word] = i;
+	}
+
+	return map;
+}
+
 double countVocabFrequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
 {
 	int score = 0;
@@ -258,14 +277,17 @@ Language checkLanguage(std::vector<std::string> content, std::vector<std::vector
 std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names)
 {
 	std::vector<std::string> dates;
+    boost::locale::generator gen;         //<-- маги€
+    std::locale utf8Loc(gen(""));  //<-- тут
 
 	for (auto i = 0; i < content.size(); i++)
 	{
-		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << std::endl;  
-		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
+		//std::string utf8_string = boost::locale::to_utf<char>(content[i], std::locale);
+		std::cout << content[i] << " " << boost::locale::to_lower(content[i], utf8Loc) << std::endl;  
+		if (month_names.find(boost::locale::to_lower(content[i], utf8Loc)) != month_names.end())
 		{
 			std::cout << content[i] << std::endl; 
-		} 
+		}
 	}
 
 	return dates;
@@ -411,46 +433,8 @@ int main(int argc, char *argv[])
 	//english_month_names["november"] = 11;
 	//english_month_names["december"] = 12;
 
-    std::unordered_map<std::string, int> russian_month_names; 
+    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", 1, 12); 
 
-	russian_month_names["€нв"] = 1;
-	russian_month_names["фев"] = 2;
-	russian_month_names["мар"] = 3;
-	russian_month_names["апр"] = 4;
-	russian_month_names["май"] = 5;
-	russian_month_names["июн"] = 6;
-	russian_month_names["июл"] = 7;
-	russian_month_names["авг"] = 8;
-	russian_month_names["сен"] = 9;
-	russian_month_names["окт"] = 10;
-	russian_month_names["но€"] = 11;
-	russian_month_names["дек"] = 12;
-
-	russian_month_names["€нварь"] = 1;
-	russian_month_names["февраль"] = 2;
-	russian_month_names["март"] = 3;
-	russian_month_names["апрель"] = 4;
-	russian_month_names["май"] = 5;
-	russian_month_names["июнь"] = 6;
-	russian_month_names["июль"] = 7;
-	russian_month_names["август"] = 8;
-	russian_month_names["сент€брь"] = 9;
-	russian_month_names["окт€брь"] = 10;
-	russian_month_names["но€брь"] = 11;
-	russian_month_names["декабрь"] = 12;
-
-	russian_month_names["€нвар€"] = 1;
-	russian_month_names["феврал€"] = 2;
-	russian_month_names["марта"] = 3;
-	russian_month_names["апрел€"] = 4;
-	russian_month_names["ма€"] = 5;
-	russian_month_names["июн€"] = 6;
-	russian_month_names["июл€"] = 7;
-	russian_month_names["августа"] = 8;
-	russian_month_names["сент€бр€"] = 9;
-	russian_month_names["окт€бр€"] = 10;
-	russian_month_names["но€бр€"] = 11;
-	russian_month_names["декабр€"] = 12;
 	//
 	//t1 = std::chrono::steady_clock::now();
 
