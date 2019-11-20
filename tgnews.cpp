@@ -24,8 +24,10 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <boost/algorithm/string.hpp>
+
 #include "metric/modules/mapping.hpp"
-#include "modules/json.hpp"
+#include "3rdparty/json.hpp"
 
 
 using json = nlohmann::json;
@@ -252,8 +254,28 @@ Language checkLanguage(std::vector<std::string> content, std::vector<std::vector
 
 ////////////////////////////
 
+
+std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names)
+{
+	std::vector<std::string> dates;
+
+	for (auto i = 0; i < content.size(); i++)
+	{
+		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << std::endl;  
+		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
+		{
+			std::cout << content[i] << std::endl; 
+		} 
+	}
+
+	return dates;
+}
+
+////////////////////////////
+
 int main(int argc, char *argv[]) 
 {
+    //setlocale(LC_ALL, "Russian");
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
@@ -309,54 +331,157 @@ int main(int argc, char *argv[])
 
 	std::cout << std::endl;  
 
+	///
+	
+    std::unordered_map<std::string, Language> articles; 
+
 	/// Load data
 
-	auto file_names = selectHtmlFiles(data_path);
-	std::cout << "Num files: " << file_names.size() << std::endl;  
-	std::cout << std::endl;  
+	//auto file_names = selectHtmlFiles(data_path);
+	//std::cout << "Num files: " << file_names.size() << std::endl;  
+	//std::cout << std::endl;  
 
-	/// Check language
+	///// Language detection
+	//
+	//// load vocabularies  with top frequency words for each language
+	//std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc");
+	//std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc");
+	//
+	//auto t1 = std::chrono::steady_clock::now();
+	//for (auto i = 0; i < file_names.size(); i++)
+	//{
+
+	//	auto content = readFileContent(file_names[i]);
+
+	//	auto language = checkLanguage(content, {top_english_words, top_russian_words});		
+
+	//	switch (language)
+	//	{
+	//		case ENGLISH_LANGUAGE:
+	//			std::cout << file_names[i] << " is in english " << std::endl;  
+	//			articles[file_names[i]] = language;
+	//			break;
+
+	//		case RUSSIAN_LANGUAGE:
+	//			std::cout << file_names[i] << " is in russian " << std::endl;  
+	//			articles[file_names[i]] = language;
+	//			break;
+
+	//		default:
+	//			std::cout << file_names[i] << " is in unknown language " << std::endl;  
+	//			break;
+	//	}
+
+	//	if (i % 1000 == 0)
+	//	{
+	//		auto t2 = std::chrono::steady_clock::now();
+	//		std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+	//		std::cout << std::endl;  
+	//		t1 = std::chrono::steady_clock::now();
+	//	}
+	//}
+
+	///// News detection
+	//
+ //   std::unordered_map<std::string, int> english_month_names; 
+
+	//english_month_names["jan"] = 1;
+	//english_month_names["feb"] = 2;
+	//english_month_names["mar"] = 3;
+	//english_month_names["apr"] = 4;
+	//english_month_names["may"] = 5;
+	//english_month_names["jun"] = 6;
+	//english_month_names["jul"] = 7;
+	//english_month_names["aug"] = 8;
+	//english_month_names["sep"] = 9;
+	//english_month_names["oct"] = 10;
+	//english_month_names["nov"] = 11;
+	//english_month_names["dec"] = 12;
+
+	//english_month_names["january"] = 1;
+	//english_month_names["february"] = 2;
+	//english_month_names["march"] = 3;
+	//english_month_names["april"] = 4;
+	//english_month_names["may"] = 5;
+	//english_month_names["june"] = 6;
+	//english_month_names["jule"] = 7;
+	//english_month_names["august"] = 8;
+	//english_month_names["september"] = 9;
+	//english_month_names["october"] = 10;
+	//english_month_names["november"] = 11;
+	//english_month_names["december"] = 12;
+
+    std::unordered_map<std::string, int> russian_month_names; 
+
+	russian_month_names["€нв"] = 1;
+	russian_month_names["фев"] = 2;
+	russian_month_names["мар"] = 3;
+	russian_month_names["апр"] = 4;
+	russian_month_names["май"] = 5;
+	russian_month_names["июн"] = 6;
+	russian_month_names["июл"] = 7;
+	russian_month_names["авг"] = 8;
+	russian_month_names["сен"] = 9;
+	russian_month_names["окт"] = 10;
+	russian_month_names["но€"] = 11;
+	russian_month_names["дек"] = 12;
+
+	russian_month_names["€нварь"] = 1;
+	russian_month_names["февраль"] = 2;
+	russian_month_names["март"] = 3;
+	russian_month_names["апрель"] = 4;
+	russian_month_names["май"] = 5;
+	russian_month_names["июнь"] = 6;
+	russian_month_names["июль"] = 7;
+	russian_month_names["август"] = 8;
+	russian_month_names["сент€брь"] = 9;
+	russian_month_names["окт€брь"] = 10;
+	russian_month_names["но€брь"] = 11;
+	russian_month_names["декабрь"] = 12;
+
+	russian_month_names["€нвар€"] = 1;
+	russian_month_names["феврал€"] = 2;
+	russian_month_names["марта"] = 3;
+	russian_month_names["апрел€"] = 4;
+	russian_month_names["ма€"] = 5;
+	russian_month_names["июн€"] = 6;
+	russian_month_names["июл€"] = 7;
+	russian_month_names["августа"] = 8;
+	russian_month_names["сент€бр€"] = 9;
+	russian_month_names["окт€бр€"] = 10;
+	russian_month_names["но€бр€"] = 11;
+	russian_month_names["декабр€"] = 12;
+	//
+	//t1 = std::chrono::steady_clock::now();
+
+	//for (auto i = articles.begin(); i != articles.end(); i++) { 
+	//	std::cout << i->first << std::endl;  
+	//	auto content = readFileContent(i->first);
+	//	
+	//	//for (auto word : content)
+	//	//{
+	//	//	std::cout << word << " ";  
+	//	//}
+	//	std::cout << std::endl;   
+
+	//	switch (i->second)
+	//	{
+	//		case ENGLISH_LANGUAGE:
+	//			findDates(content, english_month_names); 
+	//			break;
+
+	//		case RUSSIAN_LANGUAGE:
+	//			findDates(content, russian_month_names);
+	//			break;
+
+	//		default:
+	//			break;
+	//	}
+	//	std::cout << std::endl;
+ //   } 
 	
-	// load vocabularies  with top frequency words for each language
-	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc");
-	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc");
-	
-	std::vector<std::string> english_filenames;
-	std::vector<std::string> russian_filenames;
-	
-	auto t1 = std::chrono::steady_clock::now();
-	for (auto i = 0; i < file_names.size(); i++)
-	{
-
-		auto content = readFileContent(file_names[i]);
-
-		auto language = checkLanguage(content, {top_english_words, top_russian_words});
-
-		switch (language)
-		{
-			case ENGLISH_LANGUAGE:
-				//std::cout << file_names[i] << " is in english " << std::endl;  
-				english_filenames.push_back(file_names[i]);
-				break;
-
-			case RUSSIAN_LANGUAGE:
-				//std::cout << file_names[i] << " is in russian " << std::endl;  
-				russian_filenames.push_back(file_names[i]);
-				break;
-
-			default:
-				//std::cout << file_names[i] << " is in unknown language " << std::endl;  
-				break;
-		}
-
-		if (i % 1000 == 0)
-		{
-			auto t2 = std::chrono::steady_clock::now();
-			std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			std::cout << std::endl;  
-			t1 = std::chrono::steady_clock::now();
-		}
-	}
+	auto content = readFileContent("../data/toy/2098296317912864886.html");
+	findDates(content, russian_month_names);
 
     return 0;
 }
