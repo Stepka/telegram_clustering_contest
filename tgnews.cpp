@@ -290,7 +290,10 @@ int main(int argc, char *argv[])
 	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc");
 	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc");
 	
-
+	std::vector<std::string> english_filenames;
+	std::vector<std::string> russian_filenames;
+	
+	auto t1 = std::chrono::steady_clock::now();
 	for (auto i = 0; i < file_names.size(); i++)
 	{
 
@@ -301,18 +304,27 @@ int main(int argc, char *argv[])
 		switch (language)
 		{
 			case ENGLISH_LANGUAGE:
-				std::cout << file_names[i] << " is in english " << std::endl;  
+				//std::cout << file_names[i] << " is in english " << std::endl;  
+				english_filenames.push_back(file_names[i]);
 				break;
 
 			case RUSSIAN_LANGUAGE:
-				std::cout << file_names[i] << " is in russian " << std::endl;  
+				//std::cout << file_names[i] << " is in russian " << std::endl;  
+				russian_filenames.push_back(file_names[i]);
 				break;
 
 			default:
-				std::cout << file_names[i] << " is in unknown language " << std::endl;  
+				//std::cout << file_names[i] << " is in unknown language " << std::endl;  
 				break;
 		}
-		std::cout << std::endl; 
+
+		if (i % 1000 == 0)
+		{
+			auto t2 = std::chrono::steady_clock::now();
+			std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			std::cout << std::endl;  
+			t1 = std::chrono::steady_clock::now();
+		}
 	}
 
     return 0;
