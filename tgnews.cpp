@@ -25,7 +25,6 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
-#include <boost/locale.hpp>
 
 #include "metric/modules/mapping.hpp"
 #include "3rdparty/json.hpp"
@@ -277,14 +276,16 @@ Language checkLanguage(std::vector<std::string> content, std::vector<std::vector
 std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names)
 {
 	std::vector<std::string> dates;
-    boost::locale::generator gen;         //<-- магия
-    std::locale utf8Loc(gen(""));  //<-- тут
+
+	auto& facet = std::use_facet<std::ctype<char>>(std::locale());
 
 	for (auto i = 0; i < content.size(); i++)
 	{
 		//std::string utf8_string = boost::locale::to_utf<char>(content[i], std::locale);
-		std::cout << content[i] << " " << boost::locale::to_lower(content[i], utf8Loc) << std::endl;  
-		if (month_names.find(boost::locale::to_lower(content[i], utf8Loc)) != month_names.end())
+		std::string str = content[i];
+		facet.tolower(&str[0], &str[0] + str.size());
+		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << str << std::endl;  
+		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
 		{
 			std::cout << content[i] << std::endl; 
 		}
@@ -301,6 +302,8 @@ int main(int argc, char *argv[])
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
+
+	std::locale::global(std::locale(""));
 	
 	/// Select working mode
 
@@ -463,6 +466,11 @@ int main(int argc, char *argv[])
 	//	}
 	//	std::cout << std::endl;
  //   } 
+
+	for (auto i = russian_month_names.begin(); i != russian_month_names.end(); i++) 
+	{
+		std::cout << i->first << " " << i->second << std::endl;
+	}
 	
 	auto content = readFileContent("../data/toy/2098296317912864886.html");
 	findDates(content, russian_month_names);
