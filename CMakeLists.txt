@@ -19,7 +19,7 @@ target_link_libraries(tgnews ${Boost_LIBRARIES})
 set_target_properties(tgnews PROPERTIES CXX_STANDARD 17)
 
 
-find_package(LAPACK)
+find_package(LAPACK) 
 
 if(LAPACK_LIBRARIES)
 	target_link_libraries(tgnews PRIVATE ${LAPACK_LIBRARIES})	

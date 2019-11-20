@@ -151,14 +151,18 @@ std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively =
 
 
 
-std::vector<std::string> readFileContent(std::string filename, char delimeter = ' ', int min_word_size = 2)
+std::vector<std::string> readFileContent(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 2)
 {
 	std::vector<std::string> words;
 	std::string word;
 
 	std::fstream fin;
+    fin.imbue(locale);
 
 	fin.open(filename, std::ios::in);
+	
+	std::cout << "Locale " << fin.getloc().c_str() << std::endl;
+	
 
 	while (getline(fin, word, delimeter))
 	{
@@ -172,12 +176,13 @@ std::vector<std::string> readFileContent(std::string filename, char delimeter = 
 	return words;
 }
 
-std::vector<std::string> readVocabulary(std::string filename)
+std::vector<std::string> readVocabulary(std::string filename, std::locale locale)
 {
 	std::vector<std::string> words;
 	std::string word;
 
 	std::fstream fin;
+    fin.imbue(locale);
 
 	fin.open(filename, std::ios::in);
 
@@ -189,19 +194,20 @@ std::vector<std::string> readVocabulary(std::string filename)
 	return words;
 }
 
-std::unordered_map<std::string, int> readVocabularyToMap(std::string filename, int start, int end)
+std::unordered_map<std::string, int> readVocabularyToMap(std::string filename, std::locale locale, int start, int end)
 {
-	std::vector<std::string> vocab = readVocabulary(filename);
+	std::vector<std::string> vocab = readVocabulary(filename, locale);
     std::unordered_map<std::string, int> map; 
 
 	int i = start;
 	for (auto word : vocab)
 	{
-		if (start > end)
+		if (i > end)
 		{
-			start = start;
+			i = start;
 		}
 		map[word] = i;
+		i++;
 	}
 
 	return map;
@@ -273,7 +279,7 @@ Language checkLanguage(std::vector<std::string> content, std::vector<std::vector
 ////////////////////////////
 
 
-std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names)
+std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names, std::locale locale)
 {
 	std::vector<std::string> dates;
 
@@ -284,7 +290,7 @@ std::vector<std::string> findDates(std::vector<std::string> content, std::unorde
 		//std::string utf8_string = boost::locale::to_utf<char>(content[i], std::locale);
 		std::string str = content[i];
 		facet.tolower(&str[0], &str[0] + str.size());
-		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << str << std::endl;  
+		//std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << str << std::endl;  
 		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
 		{
 			std::cout << content[i] << std::endl; 
@@ -302,8 +308,15 @@ int main(int argc, char *argv[])
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
+	
+	#if defined(__linux__)
+		std::locale ru_locale("ru_RU.UTF-8");
+	#endif
+	
+	#if defined(_WIN64)
+		std::locale ru_locale("");
+	#endif
 
-	std::locale::global(std::locale(""));
 	
 	/// Select working mode
 
@@ -436,7 +449,7 @@ int main(int argc, char *argv[])
 	//english_month_names["november"] = 11;
 	//english_month_names["december"] = 12;
 
-    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", 1, 12); 
+    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", ru_locale, 1, 12); 
 
 	//
 	//t1 = std::chrono::steady_clock::now();
@@ -472,8 +485,11 @@ int main(int argc, char *argv[])
 		std::cout << i->first << " " << i->second << std::endl;
 	}
 	
-	auto content = readFileContent("../data/toy/2098296317912864886.html");
-	findDates(content, russian_month_names);
+	auto content = readFileContent("../data/toy/2098296317912864886.html", ru_locale);
+	findDates(content, russian_month_names, ru_locale);
+
+	std::string str = "ïÐîÑòî";
+	std::cout << boost::algorithm::to_lower_copy(str) << std::endl; 
 
     return 0;
 }
