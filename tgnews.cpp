@@ -489,6 +489,7 @@ int main(int argc, char *argv[])
 	auto content = readFileContent("../data/toy/2098296317912864886.html", ru_locale);
 	findDates(content, russian_month_names, ru_locale);
 	
+	std::locale::global(std::locale(""));
 	std::cout << std::endl;
 	std::string str = "ïÐîÑòî";
 	std::cout << boost::algorithm::to_lower_copy(str) << std::endl; 
