@@ -290,7 +290,7 @@ std::vector<std::string> findDates(std::vector<std::string> content, std::unorde
 		//std::string utf8_string = boost::locale::to_utf<char>(content[i], std::locale);
 		std::string str = content[i];
 		facet.tolower(&str[0], &str[0] + str.size());
-		//std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << str << std::endl;  
+		std::cout << content[i] << " " << boost::algorithm::to_lower_copy(content[i]) << " " << boost::algorithm::to_lower_copy(content[i], locale) << " " << str << std::endl;  
 		if (month_names.find(boost::algorithm::to_lower_copy(content[i])) != month_names.end())
 		{
 			std::cout << content[i] << std::endl; 
@@ -487,9 +487,6 @@ int main(int argc, char *argv[])
 	
 	auto content = readFileContent("../data/toy/2098296317912864886.html", ru_locale);
 	findDates(content, russian_month_names, ru_locale);
-
-	std::string str = "ïÐîÑòî";
-	std::cout << boost::algorithm::to_lower_copy(str) << std::endl; 
 
     return 0;
 }
