@@ -8,7 +8,14 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 
 #if defined(__linux__)
+	#define _GNU_SOURCE    // includes _BSD_SOURCE for DT_UNKNOWN etc.
 	#include <dirent.h>
+	#include <stdint.h>
+
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <stdio.h>
+	#include <stdlib.h>
 #endif
 
 #if defined(_WIN64)
@@ -23,7 +30,10 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 
 using json = nlohmann::json;
+
+#if defined(_WIN64)
 namespace  fs = std::filesystem;
+#endif
 
 
 const std::string LANGUAGES_MODE_COMMAND = "languages";
@@ -86,31 +96,77 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 
 	for (auto fp : all_paths)
 	{
-		const fs::path path(fp);
-		std::error_code ec; // For using the non-throwing overloads of functions below.
-		if (fs::is_directory(path, ec))
-		{ 
-			if (recursively)
-			{
-				std::vector<std::string> dir_files = readFilePaths(fp, recursively);
-				files_paths.insert(files_paths.end(), dir_files.begin(), dir_files.end());
+		#if defined(_WIN64)
+			const fs::path path(fp);
+			std::error_code ec; // For using the non-throwing overloads of functions below.
+			if (fs::is_directory(path, ec))
+			{ 
+				if (recursively)
+				{
+					std::vector<std::string> dir_files = readFilePaths(fp, recursively);
+					files_paths.insert(files_paths.end(), dir_files.begin(), dir_files.end());
+				}
 			}
-		}
-		if (ec)
-		{
-			std::cerr << "Error in is_directory: " << ec.message();
-		}
-		if (fs::is_regular_file(path, ec))
-		{
-			if (fp.size() > 5 && fp.substr(fp.size() - 5) == ".html")
+			if (ec)
 			{
-				files_paths.push_back(fp);
+				std::cerr << "Error in is_directory: " << ec.message();
 			}
-		}
-		if (ec) 
-		{
-			std::cerr << "Error in is_regular_file: " << ec.message();
-		}
+			if (fs::is_regular_file(path, ec))
+			{
+				if (fp.size() > 5 && fp.substr(fp.size() - 5) == ".html")
+				{
+					files_paths.push_back(fp);
+				}
+			}
+			if (ec) 
+			{
+				std::cerr << "Error in is_regular_file: " << ec.message();
+			}
+		#endif
+
+		#if defined(__linux__)
+			DIR *dp;
+			struct dirent *dirp;
+			if((dp  = opendir(dirname.c_str())) == NULL) {
+				std::cout << "Error(" << errno << ") opening " << dirname << std::endl;
+				return std::vector<std::string>();
+			}
+
+			while ((dirp = readdir(dp)) != NULL) 
+			{
+				bool is_dir;
+				#ifdef _DIRENT_HAVE_D_TYPE
+					if (dirp->d_type != DT_UNKNOWN && dirp->d_type != DT_LNK) {
+					   // don't have to stat if we have d_type info, unless it's a symlink (since we stat, not lstat)
+					   is_dir = (dirp->d_type == DT_DIR);
+					} else
+				#endif
+					{  // the only method if d_type isn't available,
+					   // otherwise this is a fallback for FSes where the kernel leaves it DT_UNKNOWN.
+					   struct stat stbuf;
+					   // stat follows symlinks, lstat doesn't.
+					   stat(dirp->d_name, &stbuf);              // TODO: error check
+					   is_dir = S_ISDIR(stbuf.st_mode);
+					}
+
+					if (is_dir) {
+						if (recursively)
+						{
+							std::vector<std::string> dir_files = readFilePaths(dirname + "/" + fn, recursively);
+							files_paths.insert(files_paths.end(), dir_files.begin(), dir_files.end());
+						}
+					}
+					else
+					{						
+						std::string fn = std::string(dirp->d_name);
+						if (fn.size() > 5 && fn.substr(fn.size() - 5) == ".html")
+						{
+							files_paths.push_back(dirname + "/" + fn);
+						}
+					}
+			}
+			closedir(dp);
+		#endif
 	}
 
 	return files_paths;
