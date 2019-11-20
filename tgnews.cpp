@@ -65,13 +65,16 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 
 		while ((dirp = readdir(dp)) != NULL) 
 		{
-			bool is_dir;
-			#ifdef _DIRENT_HAVE_D_TYPE
+			if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
+			{
+				bool is_dir;
+				#ifdef _DIRENT_HAVE_D_TYPE
 				if (dirp->d_type != DT_UNKNOWN && dirp->d_type != DT_LNK) {
 					// don't have to stat if we have d_type info, unless it's a symlink (since we stat, not lstat)
 					is_dir = (dirp->d_type == DT_DIR);
-				} else
-			#endif
+				}
+				else
+				#endif
 				{  // the only method if d_type isn't available,
 					// otherwise this is a fallback for FSes where the kernel leaves it DT_UNKNOWN.
 					struct stat stbuf;
@@ -88,9 +91,10 @@ std::vector<std::string> readFilePaths(std::string dirname, bool recursively = t
 					}
 				}
 				else
-				{						
+				{
 					path_names.push_back(dirname + "/" + std::string(dirp->d_name));
 				}
+			}
 		}
 		closedir(dp);
 	#endif
