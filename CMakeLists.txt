@@ -3,15 +3,11 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
-set(Boost_USE_STATIC_LIBS OFF) 
-set(Boost_LIB_PREFIX "lib") 
-set(Boost_USE_MULTITHREADED ON)  
-set(Boost_USE_STATIC_RUNTIME OFF) 
 find_package(Boost REQUIRED COMPONENTS locale) 
 
 include_directories(
     ${PROJECT_SOURCE_DIR}
-    )  
+    )   
 	  
 file(COPY "assets" DESTINATION ".")
 
@@ -36,4 +32,4 @@ endif()
 if(UNIX)
 	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES})
 endif()
-
+ 

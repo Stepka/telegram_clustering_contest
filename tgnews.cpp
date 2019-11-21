@@ -151,23 +151,43 @@ std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively =
 }
 
 
+//////////////////////////// Parsing
 
-std::vector<std::string> readFileContent(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 2)
+
+std::vector<std::string> readFileContent(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 1)
 {
 	std::vector<std::string> words;
-	std::string word;
+	std::string line, word;
 
 	std::fstream fin;
     fin.imbue(locale);
 
 	fin.open(filename, std::ios::in);	
 
-	while (getline(fin, word, delimeter))
+	while (getline(fin, line))
 	{
-		//std::cout << " -> " << word << std::endl;
-		if (word.size() >= min_word_size)
+		boost::replace_all(line, ",", " ");
+		boost::replace_all(line, ".", " ");
+		boost::replace_all(line, ":", " ");
+		boost::replace_all(line, ";", " ");
+		boost::replace_all(line, "\"", " ");
+		boost::replace_all(line, "'", " ");
+		boost::replace_all(line, "?", " ");
+		boost::replace_all(line, "!", " ");
+		boost::replace_all(line, "-", " ");
+		boost::replace_all(line, "—", " ");
+		boost::replace_all(line, "(", " ");
+		boost::replace_all(line, ")", " ");
+		boost::replace_all(line, ">", "> ");
+		boost::replace_all(line, "<", " <");
+		boost::replace_all(line, "T", " T"); // Time identifier for datetimes 
+		std::stringstream s(line);
+		while (getline(s, word, delimeter))
 		{
-			words.push_back(word);
+			if (word.size() >= min_word_size)
+			{
+				words.push_back(word);
+			}
 		}
 	}
 
@@ -210,6 +230,9 @@ std::unordered_map<std::string, int> readVocabularyToMap(std::string filename, s
 
 	return map;
 }
+
+
+//////////////////////////// Language recognition
 
 double countVocabFrequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
 {
@@ -274,18 +297,237 @@ Language checkLanguage(std::vector<std::string> content, std::vector<std::vector
 	return UNKNOWN_LANGUAGE;
 }
 
-////////////////////////////
+
+//////////////////////////// News recognition
+
+int extractYear(const char *p) {
+    int x = 0;
+    if (*p < '0' || *p > '9') {
+		return -1;
+    }
+    while (*p >= '0' && *p <= '9') {
+        x = (x*10) + (*p - '0');
+        ++p;
+    }
+    return x;
+}
 
 
-std::vector<std::string> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> month_names, std::locale locale)
+
+/**
+return dd.mm.yyyy, f.e. 28.01.2019
+*/
+std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string part_3, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
+	std::locale locale, Language language)
 {
-	std::vector<std::string> dates;
+	int now_year = 2019;
+
+	std::vector<std::vector<int>> valid_masks;
+	
+	switch (language)
+	{
+		case RUSSIAN_LANGUAGE:
+			// D M Y   - 1 Янв 2000
+			valid_masks.push_back({ 0, 1, 2 });
+			// Y M D   - 2000 Jan 1
+			valid_masks.push_back({ 2, 1, 0 });
+			
+			// Y D M   - 2000 1 Янв
+			valid_masks.push_back({ 2, 0, 1 });
+
+			// D M X   - 1 Янв X
+			valid_masks.push_back({ 0, 1, 3 });
+			// X D M   - X 1 Янв
+			valid_masks.push_back({ 3, 0, 1 });
+			break;
+			
+		case ENGLISH_LANGUAGE:
+		default:
+			// M D Y   - Jan 1 2000
+			valid_masks.push_back({ 1, 0, 2 });
+			// Y M D   - 2000 Jan 1
+			valid_masks.push_back({ 2, 1, 0 });
+			// D M Y   - 1 Jan 2000
+			valid_masks.push_back({ 0, 1, 2 });
+			// Y D M   - 2000 1 Jan
+			valid_masks.push_back({ 2, 0, 1 });
+
+			// M D X   - Jan 1 X
+			valid_masks.push_back({ 1, 0, 3 });
+			// X M D   - X Jan 1
+			valid_masks.push_back({ 3, 1, 0 });
+			// D M X   - 1 Jan X
+			valid_masks.push_back({ 0, 1, 3 });
+			// X D M   - X 1 Jan
+			valid_masks.push_back({ 3, 0, 1 });
+			break;
+	}
+
+	// Positions for the mask: is a day, is a month, is a year, doesn't matter
+	std::vector<int> part_1_mask = { -1, -1, -1, 0 };
+	std::vector<int> part_2_mask = { -1, -1, -1, 0 };
+	std::vector<int> part_3_mask = { -1, -1, -1, 0 };
+	
+	std::unordered_map<std::string, int>::const_iterator what_found;
+
+	what_found = day_names.find(boost::locale::to_lower(part_1, locale));
+	if (what_found != day_names.end())
+	{
+		part_1_mask[0] = what_found->second;
+	}
+	what_found = day_names.find(boost::locale::to_lower(part_2, locale));
+	if (what_found != day_names.end())
+	{
+		part_2_mask[0] = what_found->second;
+	}
+	what_found = day_names.find(boost::locale::to_lower(part_3, locale));
+	if (what_found != day_names.end())
+	{
+		part_3_mask[0] = what_found->second;
+	}
+
+	//
+
+	what_found = month_names.find(boost::locale::to_lower(part_1, locale));
+	if (what_found != month_names.end())
+	{
+		part_1_mask[1] = what_found->second;
+	}
+	what_found = month_names.find(boost::locale::to_lower(part_2, locale));
+	if (what_found != month_names.end())
+	{
+		part_2_mask[1] = what_found->second;
+	}
+	what_found = month_names.find(boost::locale::to_lower(part_3, locale));
+	if (what_found != month_names.end())
+	{
+		part_3_mask[1] = what_found->second;
+	}
+
+	//
+
+	auto part_1_i = extractYear(part_1.c_str());
+	if (part_1_i >= 0 && part_1_i < 100)
+	{
+		part_1_i += part_1_i + ((int)now_year / 100) * 100;
+	}		
+	if(part_1_i >= now_year - 1 && part_1_i <= now_year + 1)
+	{
+		part_1_mask[2] = part_1_i;
+	}
+
+	auto part_2_i = extractYear(part_2.c_str());
+	if (part_2_i >= 0 && part_2_i < 100)
+	{
+		part_2_i += part_2_i + ((int)now_year / 100) * 100;
+	}		
+	if(part_2_i >= now_year - 1 && part_2_i <= now_year + 1)
+	{
+		part_2_mask[2] = part_2_i;
+	}
+
+	auto part_3_i = extractYear(part_3.c_str());
+	if (part_3_i >= 0 && part_3_i < 100)
+	{
+		part_3_i += part_3_i + ((int)now_year / 100) * 100;
+	}		
+	if(part_3_i >= now_year - 1 && part_3_i <= now_year + 1)
+	{
+		part_3_mask[2] = part_3_i;
+	}
+
+	//
+	
+	for (auto i = 0; i < valid_masks.size(); i++)
+	{
+		//std::cout << "valid_mask " << i << ":    " << (part_1_mask[valid_masks[i][0]] && part_2_mask[valid_masks[i][1]] && part_3_mask[valid_masks[i][2]]) << std::endl;
+		if (part_1_mask[valid_masks[i][0]] >= 0 && part_2_mask[valid_masks[i][1]] >= 0 && part_3_mask[valid_masks[i][2]] >= 0)
+		{
+			int day = 0;
+			int month = 0;
+			int year = 0;
+
+			switch (valid_masks[i][0])
+			{
+				case 0:
+					// we expext day at first gram
+					day = part_1_mask[valid_masks[i][0]];
+					break;
+				case 1:
+					// we expext month at first gram
+					month = part_1_mask[valid_masks[i][0]];
+					break;
+				case 2:
+					// we expext year at first gram
+					year = part_1_mask[valid_masks[i][0]];
+					break;
+			}
+			switch (valid_masks[i][1])
+			{
+				case 0:
+					// we expext day at second gram
+					day = part_2_mask[valid_masks[i][1]];
+					break;
+				case 1:
+					// we expext month at second gram
+					month = part_2_mask[valid_masks[i][1]];
+					break;
+				case 2:
+					// we expext year at second gram
+					year = part_2_mask[valid_masks[i][1]];
+					break;
+			}
+			switch (valid_masks[i][2])
+			{
+				case 0:
+					// we expext day at third gram
+					day = part_3_mask[valid_masks[i][2]];
+					break;
+				case 1:
+					// we expext month at third gram
+					month = part_3_mask[valid_masks[i][2]];
+					break;
+				case 2:
+					// we expext year at third gram
+					year = part_3_mask[valid_masks[i][2]];
+					break;
+			}
+			//std::cout << "valid date " << i << ":    " << day << "." << month << "." << year << std::endl;
+			return { day, month, year };
+		}
+	}
+
+	return std::vector<int>();
+}
+
+std::vector<std::vector<int>> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
+	std::locale locale, Language language)
+{
+	std::vector<std::vector<int>> dates;
 
 	for (auto i = 0; i < content.size(); i++)
 	{ 
 		if (month_names.find(boost::locale::to_lower(content[i], locale)) != month_names.end())
 		{
-			std::cout << content[i] << std::endl; 
+			std::vector<int> date;
+			if (i > 0 && i < content.size() - 1)
+			{
+				date = checkIfDate(content[i - 1], content[i], content[i + 1], day_names, month_names, locale, language );
+			}
+			else if(i == 0)
+			{
+				date = checkIfDate("", content[i], content[i + 1], day_names, month_names, locale, language );
+			}
+			else if(i == content.size() - 1)
+			{
+				date = checkIfDate(content[i - 1], content[i], "", day_names, month_names, locale, language );
+			}
+
+			if (date.size() == 3)
+			{
+			    //std::cout << "valid date:    " << date[0] << "." << date[1] << "." << date[2] << std::endl;
+				dates.push_back(date);
+			}
 		}
 	}
 
@@ -305,15 +547,16 @@ int main(int argc, char *argv[])
     boost::locale::generator gen;
 	#if defined(__linux__)
 		std::locale ru_locale = gen("ru_RU.UTF-8");
+		std::locale en_locale = gen("ru_RU.UTF-8");
 	#endif
 	
 	#if defined(_WIN64)
 		std::locale ru_boost_locale = gen("russian_russia.65001");
 		std::locale en_boost_locale = gen("english_us.65001");
 		std::locale ru_locale("russian_russia.65001");
+		std::locale::global(ru_locale);	
 	#endif
-	std::locale::global(ru_locale);	
-    std::cout.imbue(ru_locale);
+    //std::cout.imbue(ru_locale);
 
 	
 	/// Select working mode
@@ -380,14 +623,16 @@ int main(int argc, char *argv[])
 	/// Language detection
 	
 	// load vocabularies  with top frequency words for each language
-	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc", ru_boost_locale);
-	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc", en_boost_locale);
+	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc", en_boost_locale);
+	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc", ru_boost_locale);
 	
+	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
+	auto t2 = std::chrono::steady_clock::now();
 	for (auto i = 0; i < file_names.size(); i++)
 	{
 
-		auto content = readFileContent(file_names[i], en_boost_locale);
+		auto content = readFileContent(file_names[i], en_boost_locale, ' ', 2);
 
 		auto language = checkLanguage(content, {top_english_words, top_russian_words});		
 
@@ -410,42 +655,65 @@ int main(int argc, char *argv[])
 
 		if (i % 1000 == 0)
 		{
-			auto t2 = std::chrono::steady_clock::now();
+			t2 = std::chrono::steady_clock::now();
 			std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
 			std::cout << std::endl;  
 			t1 = std::chrono::steady_clock::now();
 		}
 	}
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
 
 	/// News detection
 	
     std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", ru_boost_locale, 1, 12); 
     std::unordered_map<std::string, int> english_month_names = readVocabularyToMap("assets/vocabs/english_month_names.voc", en_boost_locale, 1, 12); 
-
 	
-	t1 = std::chrono::steady_clock::now();
+    std::unordered_map<std::string, int> russian_day_names = readVocabularyToMap("assets/vocabs/russian_day_names.voc", ru_boost_locale, 1, 31); 
+    std::unordered_map<std::string, int> english_day_names = readVocabularyToMap("assets/vocabs/english_day_names.voc", en_boost_locale, 1, 31); 
 
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+	int index = 0;
 	for (auto i = articles.begin(); i != articles.end(); i++) { 
 		std::cout << i->first << std::endl;  
 		
 		std::vector<std::string> content;
+		std::vector<std::vector<int>> dates;
 		switch (i->second)
 		{
 			case ENGLISH_LANGUAGE:
 				content = readFileContent(i->first, en_boost_locale);   
-				findDates(content, english_month_names, en_boost_locale); 
+				dates = findDates(content, english_day_names, english_month_names, en_boost_locale, i->second); 
 				break;
 
 			case RUSSIAN_LANGUAGE:
 				content = readFileContent(i->first, ru_boost_locale); 
-				findDates(content, russian_month_names, ru_boost_locale);
+				dates = findDates(content, russian_day_names, russian_month_names, ru_boost_locale, i->second);
 				break;
 
 			default:
 				break;
 		}
+		for (auto date : dates)
+		{
+			std::cout << date[0] << "." << date[1] << "." << date[2] << std::endl;
+		}
 		std::cout << std::endl;
-    } 
+
+		index++;
+		if (index % 1000 == 0)
+		{
+			t2 = std::chrono::steady_clock::now();
+			std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			std::cout << std::endl;  
+			t1 = std::chrono::steady_clock::now();
+		}
+	}
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
 
     return 0;
 }
