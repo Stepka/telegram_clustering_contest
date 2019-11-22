@@ -696,11 +696,19 @@ int main(int argc, char *argv[])
 			default:
 				break;
 		}
-		for (auto date : dates)
+		//for (auto date : dates)
+		//{
+		//	std::cout << date[0] << "." << date[1] << "." << date[2] << std::endl;
+		//}
+		//std::cout << std::endl;
+		if (dates.size() > 0)
 		{
-			std::cout << date[0] << "." << date[1] << "." << date[2] << std::endl;
+			std::cout << " it is news" << std::endl;
 		}
-		std::cout << std::endl;
+		else
+		{
+			std::cout << " it is not news" << std::endl;
+		}
 
 		index++;
 		if (index % 1000 == 0)
