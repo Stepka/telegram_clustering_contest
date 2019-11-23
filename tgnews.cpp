@@ -28,6 +28,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <boost/locale.hpp>
 
 #include "metric/modules/mapping.hpp"
+#include "modules/text_embedding.hpp"
 #include "3rdparty/json.hpp"
 
 
@@ -722,6 +723,59 @@ int main(int argc, char *argv[])
 	t2 = std::chrono::steady_clock::now();
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
+
+	/// Categorization
+	
+	
+	std::vector<std::string> vocab_paths;
+	vocab_paths.push_back("../data/embedding/GoogleNews-30-clusters-10000-words.bin");
+	auto text_embedder = news_clustering::TextEmbedder(vocab_paths);
+	
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+	index = 0;
+	for (auto i = articles.begin(); i != articles.end(); i++) { 
+		std::cout << i->first << std::endl;  
+		
+		std::vector<std::string> content;
+		std::vector<int> text_embedding;
+		switch (i->second)
+		{
+			case ENGLISH_LANGUAGE:
+				content = readFileContent(i->first, en_boost_locale);   
+				text_embedding = text_embedder(content, en_boost_locale);
+				break;
+
+			case RUSSIAN_LANGUAGE:
+				content = readFileContent(i->first, ru_boost_locale); 
+				text_embedding = text_embedder(content, ru_boost_locale);
+				break;
+
+			default:
+				break;
+		}
+		std::cout << "{ ";
+		for (auto i : text_embedding)
+		{
+			std::cout << i << " ";
+		}
+		std::cout << "}" << std::endl;
+
+		index++;
+		if (index % 1000 == 0)
+		{
+			t2 = std::chrono::steady_clock::now();
+			std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			std::cout << std::endl;  
+			t1 = std::chrono::steady_clock::now();
+		}
+	}
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
+
+	/// Threads (similar themes) clustering
 
     return 0;
 }

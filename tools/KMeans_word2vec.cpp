@@ -66,7 +66,7 @@ int main()
 	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
 
-	int num_clusters = 4;
+	int num_clusters = 30;
 
 	auto[assignments, means, counts] = metric::kmeans(embeddings, num_clusters); // clusters the data in 4 groups.
 
@@ -143,6 +143,45 @@ int main()
 		}
 	}
 	std::cout << '\n';
+
+	
+	FILE *write_file_pointer;
+	int cluster_id;
+	long vocab_size = 10000;
+
+	
+	std::string cluster_file_name = "GoogleNews-" + std::to_string(num_clusters) + "-clusters-" + std::to_string(vocab_size) + "-words.bin";
+
+	if ((write_file_pointer=fopen(cluster_file_name.c_str(), "wb"))==NULL) {
+		printf("Cannot open file.\n");
+		exit (1);
+	}
+
+	fprintf(write_file_pointer, "%lld %lld\n", vocab_size, num_clusters);
+	std::cout << original_vocab_size << " - " << num_clusters << std::endl;
+	for (auto i = 0; i < vocab_size; i++)
+	{
+		if (i % 10000 == 0) std::cout << i << std::endl;
+		fprintf (write_file_pointer, "%s ", words[i].c_str());
+
+		long long c_id = assignments[i];
+		if (assignments[i] > num_clusters) std::cout << str << " " << c_id << std::endl;
+		
+		fprintf(write_file_pointer, "%lld\n", c_id);
+		//fwrite(&assignments[i], sizeof(int), 1, write_file_pointer);
+		//fprintf(write_file_pointer, "\n");
+
+		//std::cout << std::endl;
+	}
+	
+	fclose (write_file_pointer);
+
+	std::cout << "finish" << std::endl;
+
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	
 	
 
 
@@ -152,6 +191,18 @@ int main()
 		std::cout << "Type word:" << std::endl;
 		std::getline(std::cin, input);
 		std::cout << '\n';
+
+		std::vector<std::string>::iterator it = std::find(words.begin(), words.end(), input);
+		
+		if (it != words.end())
+		{
+			int index = std::distance(words.begin(), it);
+			std::cout << words[index] << " : " << assignments[index] << '\n';
+		}
+		else
+		{
+			std::cout << "cluster not found\n";
+		}
 
 		if (vocab.find(input) != vocab.end())
 		{
