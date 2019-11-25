@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-Copyright (c) 2018 Stepan Mamontov (Panda Team)
+Copyright (c) 2019 Stepan Mamontov (Panda Team)
 */
 #ifndef _NEWS_CLUSTERING_LANGUAGE_DETECTOR_CPP
 #define _NEWS_CLUSTERING_LANGUAGE_DETECTOR_CPP
@@ -14,13 +14,13 @@ Copyright (c) 2018 Stepan Mamontov (Panda Team)
 namespace news_clustering {
 	
 
-	LanguageDetector::LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, const std::vector<std::locale>& locales, 
+	LanguageDetector::LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales, 
 		size_t num_language_samples, double language_score_min_level) :
 		languages_(languages), num_language_samples_(num_language_samples), language_score_min_level_(language_score_min_level)
 	{
-		for (auto i = 0; i < vocab_paths.size(); i++)
+		for (auto i = 0; i < languages.size(); i++)
 		{			
-			Vocab vocab = content_parser.read_simple_vocabulary(vocab_paths[i], locales[i]);
+			Vocab vocab = content_parser.read_simple_vocabulary(vocab_paths[i], locales[languages[i]]);
 			
 			vocabs.push_back(vocab);
 		}

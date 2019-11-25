@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-Copyright (c) 2018 Stepan Mamontov (Panda Team)
+Copyright (c) 2019 Stepan Mamontov (Panda Team)
 */
 #ifndef _NEWS_CLUSTERING_LANGUAGE_DETECTOR_HPP
 #define _NEWS_CLUSTERING_LANGUAGE_DETECTOR_HPP
@@ -22,7 +22,7 @@ namespace news_clustering {
 		
 		using Vocab = std::vector<std::string>;
 
-		explicit LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, const std::vector<std::locale>& locales, 
+		LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales, 
 			size_t num_language_samples = 300, double language_score_min_level = 0.1);
 
 		/**
