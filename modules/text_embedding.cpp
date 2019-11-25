@@ -63,5 +63,101 @@ namespace news_clustering {
 		return result;
 	}
 
+	//
+
+	Word2Vec::Word2Vec(const std::vector<std::string>& vocab_paths)
+	{
+		FILE *read_again_file_pointer;
+		char str [80];
+		long long vocab_size;
+		long long layer1_size;
+		float value;
+		std::vector<float> embedding;
+		for (auto path : vocab_paths)
+		{			
+				
+			std::cout << path << std::endl;
+			VocabEmbeddings vocab_embeddings;
+			if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
+				std::cout << "Cannot open file.\n";
+				//exit (1);
+			}
+
+			fscanf (read_again_file_pointer, "%lld %lld\n", &vocab_size, &layer1_size);	
+			for (auto i = 0; i < vocab_size; i++)
+			{
+				fscanf (read_again_file_pointer, "%s ", str);
+				embedding.clear();
+				for (auto j = 0; j < layer1_size; j++)
+				{
+					fread(&value, sizeof(float), 1, read_again_file_pointer);
+					embedding.push_back(value);
+				}
+				fscanf (read_again_file_pointer, "\n");
+
+				vocab_embeddings[std::string(str)] = embedding;
+			}
+			fclose (read_again_file_pointer);
+			
+			vocabs.push_back(vocab_embeddings);
+		}
+	}
+
+	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale)
+	{
+		std::vector<float> result;
+		std::vector<float> distances;
+		float mean_distance;
+		float num_closest_distances = 5;
+		auto vocab = vocabs[0];
+		
+		std::string single_word_lower;
+		std::string text_word_lower;
+		
+		std::vector<float> single_word_embedding;
+		std::vector<float> text_word_embedding;
+
+		auto cosineDistance = metric::Cosine<float>();
+		
+		for (auto short_text : short_texts)
+		{
+			distances.clear();
+			for (auto single_word : short_text)
+			{
+				single_word_lower = boost::locale::to_lower(single_word, locale);
+				if (vocab.find(single_word_lower) != vocab.end())
+				{
+					single_word_embedding = vocab[single_word_lower];
+					for (auto text_word : long_text)
+					{
+						text_word_lower = boost::locale::to_lower(text_word, locale);
+						if (vocab.find(text_word_lower) != vocab.end())
+						{
+							text_word_embedding = vocab[text_word_lower];
+							//std::cout << boost::locale::to_lower(word, locale) << " " << vocab[boost::locale::to_lower(word, locale)] << std::endl;
+
+							//std::cout << "    " << cosineDistance(single_word_embedding, text_word_embedding) << std::endl;
+							distances.push_back(cosineDistance(single_word_embedding, text_word_embedding));
+						}
+					}
+
+				}
+			}
+
+			std::sort(distances.begin(), distances.end(), std::greater<float>());
+			mean_distance = 0;
+			for (size_t i = 0; i < num_closest_distances; i++)
+			{
+				//std::cout << distances[i] << '\n';
+				mean_distance += distances[i];
+			}
+			mean_distance /= num_closest_distances;
+			//std::cout << "mean_distance = " << mean_distance << '\n';
+			result.push_back(mean_distance);
+		}
+
+		return result;
+	}
+
 }  // namespace news_clustering
 #endif

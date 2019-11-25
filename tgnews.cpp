@@ -727,6 +727,74 @@ int main(int argc, char *argv[])
 	/// Categorization
 	
 	
+	std::vector<std::string> word2vec_vocab_paths;
+	word2vec_vocab_paths.push_back("../data/embedding/GoogleNews-vectors-10000-words.bin");
+	auto word2vec = news_clustering::Word2Vec(word2vec_vocab_paths);
+	
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+	index = 0;
+	
+	std::cout << "Society | Economy | Technology | Sports | Entertainment | Science" << std::endl;
+
+	for (auto i = articles.begin(); i != articles.end(); i++) { 
+		std::cout << i->first << std::endl;  
+		
+		std::vector<std::string> content;
+		std::vector<float> text_distances;
+		switch (i->second)
+		{
+			case ENGLISH_LANGUAGE:
+				content = readFileContent(i->first, en_boost_locale);   
+				text_distances = word2vec.texts_distance(content, { 
+					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
+					{"Economy", "Markets", "Finance", "Business"}, 
+					{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
+					{"Sports", "Cybersport"},
+					{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
+					{"Science", "Health", "Biology", "Physics", "Genetics"} 
+					}, en_boost_locale);
+				break;
+
+			case RUSSIAN_LANGUAGE:
+				content = readFileContent(i->first, ru_boost_locale); 
+				text_distances = word2vec.texts_distance(content, { 
+					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
+					{"Economy", "Markets", "Finance", "Business"}, 
+					{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
+					{"Sports", "Cybersport"},
+					{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
+					{"Science", "Health", "Biology", "Physics", "Genetics"} 
+					}, ru_boost_locale);
+				break;
+
+			default:
+				break;
+		}
+		std::cout << "{ ";
+		for (auto i : text_distances)
+		{
+			std::cout << i << " ";
+		}
+		std::cout << "}" << std::endl;
+
+		index++;
+		if (index % 1000 == 0)
+		{
+			t2 = std::chrono::steady_clock::now();
+			std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			std::cout << std::endl;  
+			t1 = std::chrono::steady_clock::now();
+		}
+	}
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
+
+	/// Threads (similar themes) clustering
+	
+	
 	std::vector<std::string> vocab_paths;
 	vocab_paths.push_back("../data/embedding/GoogleNews-30-clusters-10000-words.bin");
 	auto text_embedder = news_clustering::TextEmbedder(vocab_paths);
@@ -773,9 +841,6 @@ int main(int argc, char *argv[])
 	t2 = std::chrono::steady_clock::now();
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
-
-
-	/// Threads (similar themes) clustering
 
     return 0;
 }

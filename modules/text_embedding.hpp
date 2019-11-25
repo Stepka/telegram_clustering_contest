@@ -32,6 +32,28 @@ namespace news_clustering {
 		std::vector<VocabClusters> vocabs;
 	};
 
+	/**
+	 * @class Word2Vec
+	 * 
+	 * @brief Word2Vec
+	 */
+	struct Word2Vec {
+		
+		using VocabEmbeddings = std::unordered_map<std::string, std::vector<float>>;
+
+		explicit Word2Vec(const std::vector<std::string>& vocab_paths);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+
+		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale);
+		
+		std::vector<std::string> vocab_paths;
+		std::vector<VocabEmbeddings> vocabs;
+	};
+
 }  // namespace news_clustering
 
 #include "text_embedding.cpp"
