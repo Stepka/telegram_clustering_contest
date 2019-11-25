@@ -19,7 +19,7 @@ namespace news_clustering {
 		
 		using VocabClusters = std::unordered_map<std::string, long long>;
 
-		explicit TextEmbedder(const std::vector<std::string>& vocab_paths);
+		TextEmbedder(const std::vector<std::string>& vocab_paths);
 
 		/**
 		 * @brief 
@@ -28,7 +28,8 @@ namespace news_clustering {
 
 		std::vector<int> operator()(const std::vector<std::string>& words, std::locale locale);
 		
-		std::vector<std::string> vocab_paths;
+
+
 		std::vector<VocabClusters> vocabs;
 	};
 
@@ -50,7 +51,9 @@ namespace news_clustering {
 
 		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale);
 		
-		std::vector<std::string> vocab_paths;
+
+
+
 		std::vector<VocabEmbeddings> vocabs;
 	};
 

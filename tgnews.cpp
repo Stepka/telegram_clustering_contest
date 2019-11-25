@@ -28,7 +28,9 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <boost/locale.hpp>
 
 #include "metric/modules/mapping.hpp"
+#include "modules/language_detector.hpp"
 #include "modules/text_embedding.hpp"
+#include "modules/content_parser.hpp"
 #include "3rdparty/json.hpp"
 
 
@@ -47,10 +49,6 @@ const std::string TOP_MODE_COMMAND = "top";
 
 enum Mode { UNKNOWN_MODE, LANGUAGES_MODE, NEWS_MODE, CATEGORIES_MODE, THREAD_MODE, TOP_MODE };
 
-/// Language consts
-enum Language { UNKNOWN_LANGUAGE, ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE };
-size_t num_language_samples = 300;
-double language_score_min_level = 0.1;
 
 ////////////////////////////
 
@@ -155,148 +153,7 @@ std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively =
 //////////////////////////// Parsing
 
 
-std::vector<std::string> readFileContent(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 1)
-{
-	std::vector<std::string> words;
-	std::string line, word;
-
-	std::fstream fin;
-    fin.imbue(locale);
-
-	fin.open(filename, std::ios::in);	
-
-	while (getline(fin, line))
-	{
-		boost::replace_all(line, ",", " ");
-		boost::replace_all(line, ".", " ");
-		boost::replace_all(line, ":", " ");
-		boost::replace_all(line, ";", " ");
-		boost::replace_all(line, "\"", " ");
-		boost::replace_all(line, "'", " ");
-		boost::replace_all(line, "?", " ");
-		boost::replace_all(line, "!", " ");
-		boost::replace_all(line, "-", " ");
-		boost::replace_all(line, "—", " ");
-		boost::replace_all(line, "(", " ");
-		boost::replace_all(line, ")", " ");
-		boost::replace_all(line, ">", "> ");
-		boost::replace_all(line, "<", " <");
-		boost::replace_all(line, "T", " T"); // Time identifier for datetimes 
-		std::stringstream s(line);
-		while (getline(s, word, delimeter))
-		{
-			if (word.size() >= min_word_size)
-			{
-				words.push_back(word);
-			}
-		}
-	}
-
-	return words;
-}
-
-std::vector<std::string> readVocabulary(std::string filename, std::locale locale)
-{
-	std::vector<std::string> words;
-	std::string word;
-
-	std::fstream fin;
-    fin.imbue(locale);
-
-	fin.open(filename, std::ios::in);
-
-	while (getline(fin, word))
-	{
-		words.push_back(word);
-	}
-
-	return words;
-}
-
-std::unordered_map<std::string, int> readVocabularyToMap(std::string filename, std::locale locale, int start, int end)
-{
-	std::vector<std::string> vocab = readVocabulary(filename, locale);
-    std::unordered_map<std::string, int> map; 
-
-	int i = start;
-	for (auto word : vocab)
-	{
-		if (i > end)
-		{
-			i = start;
-		}
-		map[word] = i;
-		i++;
-	}
-
-	return map;
-}
-
-
 //////////////////////////// Language recognition
-
-double countVocabFrequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
-{
-	int score = 0;
-
-	for (auto i = 0; i < sampling_indexes.size(); i++)
-	{
-		std::string sample = content[sampling_indexes[i]];
-		for (auto word : vocab)
-		{
-			if (sample == word)
-			{
-				score++;
-			}
-		}
-	}
-
-	return (double) score / sampling_indexes.size();
-}
-
-Language checkLanguage(std::vector<std::string> content, std::vector<std::vector<std::string>> vocabs)
-{		
-    // Random sampleing 
-    std::vector<size_t> randomized_samples(content.size());
-    std::iota(randomized_samples.begin(), randomized_samples.end(), 0);
-	// shuffle samples after all was processed		
-    std::shuffle(randomized_samples.begin(), randomized_samples.end(), std::mt19937 { std::random_device {}() });
-
-	if (num_language_samples < randomized_samples.size())
-	{
-		randomized_samples.resize(num_language_samples);
-	}	  
-	
-	std::vector<Language> languages = { ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE };
-	std::vector<double> scores(2);
-
-	scores[0] = countVocabFrequency(content, randomized_samples, vocabs[0]);
-	scores[1] = countVocabFrequency(content, randomized_samples, vocabs[1]);
-	
-	//for (auto word : content)
-	//{
-	//	std::cout << word << " ";  
-	//}
-	//std::cout << std::endl;   
-	//std::cout << "Num words: " << content.size() << std::endl;  
-	//std::cout << std::endl; 
-	//std::cout << "Samples size: " << randomized_samples.size() << std::endl;  
-	//std::cout << std::endl;
-	//std::cout << "English score: " << scores[0] << std::endl;  
-	//std::cout << std::endl;  
-	//std::cout << "Russian score: " << scores[1] << std::endl;   
-	//std::cout << std::endl;  
-
-	auto max_score_iterator = std::max_element(scores.begin(), scores.end());
-	auto max_score_index = std::distance(scores.begin(), max_score_iterator);
-
-	if (scores[max_score_index] > language_score_min_level)
-	{
-		return languages[max_score_index];
-	}
-
-	return UNKNOWN_LANGUAGE;
-}
 
 
 //////////////////////////// News recognition
@@ -319,7 +176,7 @@ int extractYear(const char *p) {
 return dd.mm.yyyy, f.e. 28.01.2019
 */
 std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string part_3, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
-	std::locale locale, Language language)
+	std::locale locale, news_clustering::Language language)
 {
 	int now_year = 2019;
 
@@ -327,7 +184,7 @@ std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string
 	
 	switch (language)
 	{
-		case RUSSIAN_LANGUAGE:
+		case news_clustering::RUSSIAN_LANGUAGE:
 			// D M Y   - 1 Янв 2000
 			valid_masks.push_back({ 0, 1, 2 });
 			// Y M D   - 2000 Jan 1
@@ -342,7 +199,7 @@ std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string
 			valid_masks.push_back({ 3, 0, 1 });
 			break;
 			
-		case ENGLISH_LANGUAGE:
+		case news_clustering::ENGLISH_LANGUAGE:
 		default:
 			// M D Y   - Jan 1 2000
 			valid_masks.push_back({ 1, 0, 2 });
@@ -502,7 +359,7 @@ std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string
 }
 
 std::vector<std::vector<int>> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
-	std::locale locale, Language language)
+	std::locale locale, news_clustering::Language language)
 {
 	std::vector<std::vector<int>> dates;
 
@@ -613,7 +470,12 @@ int main(int argc, char *argv[])
 
 	///
 	
-    std::unordered_map<std::string, Language> articles; 
+    std::unordered_map<std::string, news_clustering::Language> articles_with_all_languages; 
+	std::vector<news_clustering::Language> languages = { news_clustering::ENGLISH_LANGUAGE, news_clustering::RUSSIAN_LANGUAGE };
+	
+	std::vector<std::locale> language_boost_locales;
+	language_boost_locales.push_back(en_boost_locale);
+	language_boost_locales.push_back(ru_boost_locale);
 
 	/// Load data
 
@@ -621,76 +483,84 @@ int main(int argc, char *argv[])
 	std::cout << "Num files: " << file_names.size() << std::endl;  
 	std::cout << std::endl;  
 
-	/// Language detection
 	
+	auto content_parser = news_clustering::ContentParser();
+
+	/// Language detection
+
 	// load vocabularies  with top frequency words for each language
-	std::vector<std::string> top_english_words = readVocabulary("assets/vocabs/top_english_words.voc", en_boost_locale);
-	std::vector<std::string> top_russian_words = readVocabulary("assets/vocabs/top_russian_words.voc", ru_boost_locale);
+	
+	std::vector<std::string> top_freq_vocab_paths;
+	top_freq_vocab_paths.push_back("assets/vocabs/top_english_words.voc");
+	top_freq_vocab_paths.push_back("assets/vocabs/top_russian_words.voc");
+	
+	auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
 	
 	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
 	auto t2 = std::chrono::steady_clock::now();
-	for (auto i = 0; i < file_names.size(); i++)
-	{
-
-		auto content = readFileContent(file_names[i], en_boost_locale, ' ', 2);
-
-		auto language = checkLanguage(content, {top_english_words, top_russian_words});		
-
-		switch (language)
+	
+    std::unordered_map<std::string, news_clustering::Language> articles_with_known_languages; 
+	
+	articles_with_all_languages = language_detector.detect_language_by_file_names(file_names);
+	for (auto i = articles_with_all_languages.begin(); i != articles_with_all_languages.end(); i++)
+	{	
+		switch (i->second)
 		{
-			case ENGLISH_LANGUAGE:
-				std::cout << file_names[i] << " is in english " << std::endl;  
-				articles[file_names[i]] = language;
+			case news_clustering::ENGLISH_LANGUAGE:
+				std::cout << i->first << " is in english " << std::endl;  
+				articles_with_known_languages[i->first] = i->second;
 				break;
 
-			case RUSSIAN_LANGUAGE:
-				std::cout << file_names[i] << " is in russian " << std::endl;  
-				articles[file_names[i]] = language;
+			case news_clustering::RUSSIAN_LANGUAGE:
+				std::cout << i->first << " is in russian " << std::endl;  
+				articles_with_known_languages[i->first] = i->second;
 				break;
 
 			default:
-				std::cout << file_names[i] << " is in unknown language " << std::endl;  
+				std::cout << i->first << " is in unknown language " << std::endl;  
 				break;
 		}
 
-		if (i % 1000 == 0)
-		{
-			t2 = std::chrono::steady_clock::now();
-			std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			std::cout << std::endl;  
-			t1 = std::chrono::steady_clock::now();
-		}
+		//if (i % 1000 == 0)
+		//{
+		//	t2 = std::chrono::steady_clock::now();
+		//	std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+		//	std::cout << std::endl;  
+		//	t1 = std::chrono::steady_clock::now();
+		//}
 	}
 	t2 = std::chrono::steady_clock::now();
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
+	
+
 	/// News detection
 	
-    std::unordered_map<std::string, int> russian_month_names = readVocabularyToMap("assets/vocabs/russian_month_names.voc", ru_boost_locale, 1, 12); 
-    std::unordered_map<std::string, int> english_month_names = readVocabularyToMap("assets/vocabs/english_month_names.voc", en_boost_locale, 1, 12); 
+    std::unordered_map<std::string, int> russian_month_names = content_parser.read_vocabulary_and_tag("assets/vocabs/russian_month_names.voc", ru_boost_locale, 1, 12); 
+    std::unordered_map<std::string, int> english_month_names = content_parser.read_vocabulary_and_tag("assets/vocabs/english_month_names.voc", en_boost_locale, 1, 12); 
 	
-    std::unordered_map<std::string, int> russian_day_names = readVocabularyToMap("assets/vocabs/russian_day_names.voc", ru_boost_locale, 1, 31); 
-    std::unordered_map<std::string, int> english_day_names = readVocabularyToMap("assets/vocabs/english_day_names.voc", en_boost_locale, 1, 31); 
+    std::unordered_map<std::string, int> russian_day_names = content_parser.read_vocabulary_and_tag("assets/vocabs/russian_day_names.voc", ru_boost_locale, 1, 31); 
+    std::unordered_map<std::string, int> english_day_names = content_parser.read_vocabulary_and_tag("assets/vocabs/english_day_names.voc", en_boost_locale, 1, 31); 
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	int index = 0;
-	for (auto i = articles.begin(); i != articles.end(); i++) { 
+	for (auto i = articles_with_known_languages.begin(); i != articles_with_known_languages.end(); i++) { 
 		std::cout << i->first << std::endl;  
 		
 		std::vector<std::string> content;
 		std::vector<std::vector<int>> dates;
 		switch (i->second)
 		{
-			case ENGLISH_LANGUAGE:
-				content = readFileContent(i->first, en_boost_locale);   
+			case news_clustering::ENGLISH_LANGUAGE:
+				content = content_parser.parse(i->first, en_boost_locale);   
 				dates = findDates(content, english_day_names, english_month_names, en_boost_locale, i->second); 
 				break;
 
-			case RUSSIAN_LANGUAGE:
-				content = readFileContent(i->first, ru_boost_locale); 
+			case news_clustering::RUSSIAN_LANGUAGE:
+				content = content_parser.parse(i->first, ru_boost_locale); 
 				dates = findDates(content, russian_day_names, russian_month_names, ru_boost_locale, i->second);
 				break;
 
@@ -737,15 +607,15 @@ int main(int argc, char *argv[])
 	
 	std::cout << "Society | Economy | Technology | Sports | Entertainment | Science" << std::endl;
 
-	for (auto i = articles.begin(); i != articles.end(); i++) { 
+	for (auto i = articles_with_known_languages.begin(); i != articles_with_known_languages.end(); i++) { 
 		std::cout << i->first << std::endl;  
 		
 		std::vector<std::string> content;
 		std::vector<float> text_distances;
 		switch (i->second)
 		{
-			case ENGLISH_LANGUAGE:
-				content = readFileContent(i->first, en_boost_locale);   
+			case news_clustering::ENGLISH_LANGUAGE:
+				content = content_parser.parse(i->first, en_boost_locale);   
 				text_distances = word2vec.texts_distance(content, { 
 					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
 					{"Economy", "Markets", "Finance", "Business"}, 
@@ -756,8 +626,8 @@ int main(int argc, char *argv[])
 					}, en_boost_locale);
 				break;
 
-			case RUSSIAN_LANGUAGE:
-				content = readFileContent(i->first, ru_boost_locale); 
+			case news_clustering::RUSSIAN_LANGUAGE:
+				content = content_parser.parse(i->first, ru_boost_locale); 
 				text_distances = word2vec.texts_distance(content, { 
 					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
 					{"Economy", "Markets", "Finance", "Business"}, 
@@ -792,7 +662,7 @@ int main(int argc, char *argv[])
 	std::cout << std::endl;  
 
 
-	/// Threads (similar themes) clustering
+	/// Threads (similar news) clustering
 	
 	
 	std::vector<std::string> vocab_paths;
@@ -802,20 +672,20 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	index = 0;
-	for (auto i = articles.begin(); i != articles.end(); i++) { 
+	for (auto i = articles_with_known_languages.begin(); i != articles_with_known_languages.end(); i++) { 
 		std::cout << i->first << std::endl;  
 		
 		std::vector<std::string> content;
 		std::vector<int> text_embedding;
 		switch (i->second)
 		{
-			case ENGLISH_LANGUAGE:
-				content = readFileContent(i->first, en_boost_locale);   
+			case news_clustering::ENGLISH_LANGUAGE:
+				content = content_parser.parse(i->first, en_boost_locale);   
 				text_embedding = text_embedder(content, en_boost_locale);
 				break;
 
-			case RUSSIAN_LANGUAGE:
-				content = readFileContent(i->first, ru_boost_locale); 
+			case news_clustering::RUSSIAN_LANGUAGE:
+				content = content_parser.parse(i->first, ru_boost_locale); 
 				text_embedding = text_embedder(content, ru_boost_locale);
 				break;
 
