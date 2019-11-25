@@ -18,8 +18,10 @@ namespace news_clustering {
 	struct TextEmbedder {
 		
 		using VocabClusters = std::unordered_map<std::string, long long>;
+		
+		TextEmbedder() = default;
 
-		TextEmbedder(const std::vector<std::string>& vocab_paths);
+		explicit TextEmbedder(std::string path);
 
 		/**
 		 * @brief 
@@ -29,8 +31,10 @@ namespace news_clustering {
 		std::vector<int> operator()(const std::vector<std::string>& words, std::locale locale);
 		
 
+		
+		long long num_clusters;	
 
-		std::vector<VocabClusters> vocabs;
+		VocabClusters vocab_clusters;
 	};
 
 	/**

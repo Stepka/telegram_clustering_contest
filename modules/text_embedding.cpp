@@ -13,50 +13,38 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 namespace news_clustering {
 
-	TextEmbedder::TextEmbedder(const std::vector<std::string>& vocab_paths)
+	TextEmbedder::TextEmbedder(const std::string path)
 	{
 		FILE *read_again_file_pointer;
 		char str [80];
-		long long cluster_id;
+		long long cluster_id;	
 		long long vocab_size;
-		long long num_clusters;
-		for (auto path : vocab_paths)
-		{			
 				
-			std::cout << path << std::endl;
-			VocabClusters vocab_clusters;
-			if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
-				std::cout << "Cannot open file.\n";
-				//exit (1);
-			}
-
-			fscanf (read_again_file_pointer, "%lld %lld\n", &vocab_size, &num_clusters);	
-			for (auto i = 0; i < vocab_size; i++)
-			{
-				fscanf (read_again_file_pointer, "%s ", str);
-				fscanf (read_again_file_pointer, "%lld\n", &cluster_id);	
-				//fread(&cluster_id, sizeof(int), 1, read_again_file_pointer);
-				//fscanf (read_again_file_pointer, "\n");
-				vocab_clusters[std::string(str)] = cluster_id;
-				if(cluster_id >= num_clusters)
-					std::cout << std::string(str) << " " << cluster_id << std::endl;
-			}
-			fclose (read_again_file_pointer);
-			
-			vocabs.push_back(vocab_clusters);
+		if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
+			std::cout << "Cannot open file.\n";
+			//exit (1);
 		}
+
+		fscanf (read_again_file_pointer, "%lld %lld\n", &vocab_size, &num_clusters);	
+		for (auto i = 0; i < vocab_size; i++)
+		{
+			fscanf (read_again_file_pointer, "%s ", str);
+			fscanf (read_again_file_pointer, "%lld\n", &cluster_id);	
+			//fread(&cluster_id, sizeof(int), 1, read_again_file_pointer);
+			//fscanf (read_again_file_pointer, "\n");
+			vocab_clusters[std::string(str)] = cluster_id;
+		}
+		fclose (read_again_file_pointer);
 	}
 
 	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, std::locale locale)
 	{
-		std::vector<int> result(30, 0);
-		auto vocab = vocabs[0];
+		std::vector<int> result(num_clusters, 0);
 		for (auto word : words)
 		{
-			if (vocab.find(boost::locale::to_lower(word, locale)) != vocab.end())
+			if (vocab_clusters.find(boost::locale::to_lower(word, locale)) != vocab_clusters.end())
 			{
-				//std::cout << boost::locale::to_lower(word, locale) << " " << vocab[boost::locale::to_lower(word, locale)] << std::endl;
-				result[vocab[boost::locale::to_lower(word, locale)]]++;
+				result[vocab_clusters[boost::locale::to_lower(word, locale)]]++;
 			}
 		}
 
@@ -74,7 +62,6 @@ namespace news_clustering {
 		float value;
 		std::vector<float> embedding;		
 				
-		std::cout << path << std::endl;
 		if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
 			std::cout << "Cannot open file.\n";
 			//exit (1);
