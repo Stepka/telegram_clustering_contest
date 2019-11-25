@@ -41,8 +41,10 @@ namespace news_clustering {
 	struct Word2Vec {
 		
 		using VocabEmbeddings = std::unordered_map<std::string, std::vector<float>>;
+		
+		Word2Vec() = default;
 
-		explicit Word2Vec(const std::vector<std::string>& vocab_paths);
+		explicit Word2Vec(std::string path);
 
 		/**
 		 * @brief 
@@ -52,9 +54,8 @@ namespace news_clustering {
 		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale);
 		
 
-
-
-		std::vector<VocabEmbeddings> vocabs;
+		
+		VocabEmbeddings vocab_embeddings;
 	};
 
 }  // namespace news_clustering

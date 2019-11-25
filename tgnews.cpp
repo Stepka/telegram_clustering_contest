@@ -30,7 +30,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include "metric/modules/mapping.hpp"
 #include "modules/language_detector.hpp"
 #include "modules/news_detector.hpp"
-#include "modules/text_embedding.hpp"
+#include "modules/categories_detector.hpp"
 #include "modules/content_parser.hpp"
 #include "3rdparty/json.hpp"
 
@@ -349,9 +349,32 @@ int main(int argc, char *argv[])
 	/// Categorization
 	
 	
-	std::vector<std::string> word2vec_vocab_paths;
-	word2vec_vocab_paths.push_back("../data/embedding/GoogleNews-vectors-10000-words.bin");
-	auto word2vec = news_clustering::Word2Vec(word2vec_vocab_paths);
+	
+	std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths;
+	word2vec_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
+	word2vec_vocab_paths[russian_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
+	
+	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
+	categories[english_language] = {
+		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
+		{"Economy", "Markets", "Finance", "Business"}, 
+		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
+		{"Sports", "Cybersport"},
+		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
+		{"Science", "Health", "Biology", "Physics", "Genetics"} 
+	};
+	categories[russian_language] = { 
+		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
+		{"Economy", "Markets", "Finance", "Business"}, 
+		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
+		{"Sports", "Cybersport"},
+		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
+		{"Science", "Health", "Biology", "Physics", "Genetics"}
+	};
+	   	 
+	auto categories_detector = news_clustering::CategoriesDetector(languages, language_boost_locales, word2vec_vocab_paths, categories);
+	
+    std::unordered_map<std::string, std::string> categories_articles = categories_detector.detect_categories(selected_language_articles); 
 	
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -359,55 +382,17 @@ int main(int argc, char *argv[])
 	
 	std::cout << "Society | Economy | Technology | Sports | Entertainment | Science" << std::endl;
 
-	for (auto i = selected_news_articles.begin(); i != selected_news_articles.end(); i++) { 
-		std::cout << i->first << std::endl;  
-		
-		std::vector<std::string> content;
-		std::vector<float> text_distances;
-		switch (i->second.id())
-		{
-			case news_clustering::ENGLISH_LANGUAGE:
-				content = content_parser.parse(i->first, en_boost_locale);   
-				text_distances = word2vec.texts_distance(content, { 
-					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
-					{"Economy", "Markets", "Finance", "Business"}, 
-					{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
-					{"Sports", "Cybersport"},
-					{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
-					{"Science", "Health", "Biology", "Physics", "Genetics"} 
-					}, en_boost_locale);
-				break;
+	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) { 
+		std::cout << i->first << " : " << i->second << std::endl;
 
-			case news_clustering::RUSSIAN_LANGUAGE:
-				content = content_parser.parse(i->first, ru_boost_locale); 
-				text_distances = word2vec.texts_distance(content, { 
-					{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
-					{"Economy", "Markets", "Finance", "Business"}, 
-					{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
-					{"Sports", "Cybersport"},
-					{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
-					{"Science", "Health", "Biology", "Physics", "Genetics"} 
-					}, ru_boost_locale);
-				break;
-
-			default:
-				break;
-		}
-		std::cout << "{ ";
-		for (auto i : text_distances)
-		{
-			std::cout << i << " ";
-		}
-		std::cout << "}" << std::endl;
-
-		index++;
-		if (index % 1000 == 0)
-		{
-			t2 = std::chrono::steady_clock::now();
-			std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			std::cout << std::endl;  
-			t1 = std::chrono::steady_clock::now();
-		}
+		//index++;
+		//if (index % 1000 == 0)
+		//{
+		//	t2 = std::chrono::steady_clock::now();
+		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+		//	std::cout << std::endl;  
+		//	t1 = std::chrono::steady_clock::now();
+		//}
 	}
 	t2 = std::chrono::steady_clock::now();
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
