@@ -14,8 +14,19 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 namespace news_clustering {
 	
 
-	NewsDetector::NewsDetector() 
+	NewsDetector::NewsDetector(
+			const std::vector<Language>& languages, 
+			std::unordered_map<news_clustering::Language, std::locale>& locales, 
+			std::unordered_map<news_clustering::Language, std::string>& day_names_path, 
+			std::unordered_map<news_clustering::Language, std::string>& month_names_path, 
+			int now_year
+	) : languages_(languages), locales_(locales), now_year_(now_year)
 	{
+		for (auto i = 0; i < languages.size(); i++)
+		{
+			day_names_[languages[i]] = content_parser.read_vocabulary_and_tag(day_names_path[languages[i]], locales[languages[i]], 1, 31);
+			month_names_[languages[i]] = content_parser.read_vocabulary_and_tag(month_names_path[languages[i]], locales[languages[i]], 1, 12);
+		}
 	}
 
 	
@@ -23,59 +34,52 @@ namespace news_clustering {
 	{
 		std::unordered_map<std::string, bool> result;
 
-		for (auto i = file_names.begin(); i != file_names.end(); i++) { 
-			/*std::cout << i->first << std::endl;  
-		
-			std::vector<std::string> content;
-			std::vector<std::vector<int>> dates;
-			switch (i->second.id())
-			{
-				case ENGLISH_LANGUAGE:
-					content = content_parser.parse(i->first, en_boost_locale);   
-					dates = findDates(content, english_day_names, english_month_names, en_boost_locale, i->second); 
-					break;
+		std::vector<std::string> content;
+		std::vector<std::vector<int>> dates;
 
-				case RUSSIAN_LANGUAGE:
-					content = content_parser.parse(i->first, ru_boost_locale); 
-					dates = findDates(content, russian_day_names, russian_month_names, ru_boost_locale, i->second);
-					break;
-
-				default:
-					break;
-			}
+		for (auto i = file_names.begin(); i != file_names.end(); i++) 
+		{ 		
+			content = content_parser.parse(i->first, locales_[i->second]);   
+			dates = find_dates(content, i->second); 
 			
-			result[i->first] = dates.size() > 0;*/
-			result[i->first] = true;
+			result[i->first] = dates.size() > 0;
 		}
+
+		return result;
 	}
 	
 
-	std::vector<std::vector<int>> NewsDetector::findDates(std::vector<std::string> content, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
-		std::locale locale, news_clustering::Language language)
+	std::vector<std::vector<int>> NewsDetector::find_dates(std::vector<std::string> content, news_clustering::Language language)
 	{
 		std::vector<std::vector<int>> dates;
+		
+		std::vector<int> date;
+
+		auto day_names = day_names_[language];
+		auto month_names = month_names_[language];
+		auto locale = locales_[language];
 
 		for (auto i = 0; i < content.size(); i++)
 		{ 
 			if (month_names.find(boost::locale::to_lower(content[i], locale)) != month_names.end())
 			{
-				std::vector<int> date;
+				date.clear();
+
 				if (i > 0 && i < content.size() - 1)
 				{
-					date = checkIfDate(content[i - 1], content[i], content[i + 1], day_names, month_names, locale, language );
+					date = check_if_date(content[i - 1], content[i], content[i + 1], language );
 				}
 				else if(i == 0)
 				{
-					date = checkIfDate("", content[i], content[i + 1], day_names, month_names, locale, language );
+					date = check_if_date("", content[i], content[i + 1], language );
 				}
 				else if(i == content.size() - 1)
 				{
-					date = checkIfDate(content[i - 1], content[i], "", day_names, month_names, locale, language );
+					date = check_if_date(content[i - 1], content[i], "", language );
 				}
 
 				if (date.size() == 3)
 				{
-					//std::cout << "valid date:    " << date[0] << "." << date[1] << "." << date[2] << std::endl;
 					dates.push_back(date);
 				}
 			}
@@ -84,24 +88,12 @@ namespace news_clustering {
 		return dates;
 	}
 
-	
-	int NewsDetector::extractYear(const char *p) {
-		int x = 0;
-		if (*p < '0' || *p > '9') {
-			return -1;
-		}
-		while (*p >= '0' && *p <= '9') {
-			x = (x*10) + (*p - '0');
-			++p;
-		}
-		return x;
-	}
 
-
-	std::vector<int> NewsDetector::checkIfDate(std::string part_1, std::string part_2, std::string part_3, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names, 
-		std::locale locale, news_clustering::Language language)
+	std::vector<int> NewsDetector::check_if_date(std::string part_1, std::string part_2, std::string part_3, news_clustering::Language language)
 	{
-		int now_year = 2019;
+		auto day_names = day_names_[language];
+		auto month_names = month_names_[language];
+		auto locale = locales_[language];
 
 		std::vector<std::vector<int>> valid_masks;
 	
@@ -187,32 +179,32 @@ namespace news_clustering {
 
 		//
 
-		auto part_1_i = extractYear(part_1.c_str());
+		auto part_1_i = extract_year(part_1.c_str());
 		if (part_1_i >= 0 && part_1_i < 100)
 		{
-			part_1_i += part_1_i + ((int)now_year / 100) * 100;
+			part_1_i += part_1_i + ((int)now_year_ / 100) * 100;
 		}		
-		if(part_1_i >= now_year - 1 && part_1_i <= now_year + 1)
+		if(part_1_i >= now_year_ - 1 && part_1_i <= now_year_ + 1)
 		{
 			part_1_mask[2] = part_1_i;
 		}
 
-		auto part_2_i = extractYear(part_2.c_str());
+		auto part_2_i = extract_year(part_2.c_str());
 		if (part_2_i >= 0 && part_2_i < 100)
 		{
-			part_2_i += part_2_i + ((int)now_year / 100) * 100;
+			part_2_i += part_2_i + ((int)now_year_ / 100) * 100;
 		}		
-		if(part_2_i >= now_year - 1 && part_2_i <= now_year + 1)
+		if(part_2_i >= now_year_ - 1 && part_2_i <= now_year_ + 1)
 		{
 			part_2_mask[2] = part_2_i;
 		}
 
-		auto part_3_i = extractYear(part_3.c_str());
+		auto part_3_i = extract_year(part_3.c_str());
 		if (part_3_i >= 0 && part_3_i < 100)
 		{
-			part_3_i += part_3_i + ((int)now_year / 100) * 100;
+			part_3_i += part_3_i + ((int)now_year_ / 100) * 100;
 		}		
-		if(part_3_i >= now_year - 1 && part_3_i <= now_year + 1)
+		if(part_3_i >= now_year_ - 1 && part_3_i <= now_year_ + 1)
 		{
 			part_3_mask[2] = part_3_i;
 		}
@@ -221,7 +213,6 @@ namespace news_clustering {
 	
 		for (auto i = 0; i < valid_masks.size(); i++)
 		{
-			//std::cout << "valid_mask " << i << ":    " << (part_1_mask[valid_masks[i][0]] && part_2_mask[valid_masks[i][1]] && part_3_mask[valid_masks[i][2]]) << std::endl;
 			if (part_1_mask[valid_masks[i][0]] >= 0 && part_2_mask[valid_masks[i][1]] >= 0 && part_3_mask[valid_masks[i][2]] >= 0)
 			{
 				int day = 0;
@@ -231,54 +222,66 @@ namespace news_clustering {
 				switch (valid_masks[i][0])
 				{
 					case 0:
-						// we expext day at first gram
+						// we expect day at first gram
 						day = part_1_mask[valid_masks[i][0]];
 						break;
 					case 1:
-						// we expext month at first gram
+						// we expect month at first gram
 						month = part_1_mask[valid_masks[i][0]];
 						break;
 					case 2:
-						// we expext year at first gram
+						// we expect year at first gram
 						year = part_1_mask[valid_masks[i][0]];
 						break;
 				}
 				switch (valid_masks[i][1])
 				{
 					case 0:
-						// we expext day at second gram
+						// we expect day at second gram
 						day = part_2_mask[valid_masks[i][1]];
 						break;
 					case 1:
-						// we expext month at second gram
+						// we expect month at second gram
 						month = part_2_mask[valid_masks[i][1]];
 						break;
 					case 2:
-						// we expext year at second gram
+						// we expect year at second gram
 						year = part_2_mask[valid_masks[i][1]];
 						break;
 				}
 				switch (valid_masks[i][2])
 				{
 					case 0:
-						// we expext day at third gram
+						// we expect day at third gram
 						day = part_3_mask[valid_masks[i][2]];
 						break;
 					case 1:
-						// we expext month at third gram
+						// we expect month at third gram
 						month = part_3_mask[valid_masks[i][2]];
 						break;
 					case 2:
-						// we expext year at third gram
+						// we expect year at third gram
 						year = part_3_mask[valid_masks[i][2]];
 						break;
 				}
-				//std::cout << "valid date " << i << ":    " << day << "." << month << "." << year << std::endl;
 				return { day, month, year };
 			}
 		}
 
 		return std::vector<int>();
+	}
+
+	
+	int NewsDetector::extract_year(const char *p) {
+		int x = 0;
+		if (*p < '0' || *p > '9') {
+			return -1;
+		}
+		while (*p >= '0' && *p <= '9') {
+			x = (x*10) + (*p - '0');
+			++p;
+		}
+		return x;
 	}
 
 }  // namespace news_clustering

@@ -20,41 +20,49 @@ namespace news_clustering {
 	 */
 	struct NewsDetector {
 		
-		using Vocab = std::vector<std::string>;
+		using Vocab = std::unordered_map<std::string, int>;
 
-		explicit NewsDetector();
+		NewsDetector(
+			const std::vector<Language>& languages, 
+			std::unordered_map<news_clustering::Language, std::locale>& locales, 
+			std::unordered_map<news_clustering::Language, std::string>& day_names_path, 
+			std::unordered_map<news_clustering::Language, std::string>& month_names_path, 
+			int now_year = 2019
+		);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
 		std::unordered_map<std::string, bool> detect_news(std::unordered_map<std::string, news_clustering::Language> file_names);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::vector<int>> find_dates(std::vector<std::string> content, news_clustering::Language language);
 			
 		/**
 		 * @brief 
 		 * @return dd.mm.yyyy, f.e. 28.01.2019
 		 */
-		std::vector<int> checkIfDate(std::string part_1, std::string part_2, std::string part_3, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names,
-			std::locale locale, news_clustering::Language language);
+		std::vector<int> check_if_date(std::string part_1, std::string part_2, std::string part_3, news_clustering::Language language);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		int extractYear(const char *p);
-
-		/**
-		 * @brief 
-		 * @return 
-		 */
-		std::vector<std::vector<int>> findDates(std::vector<std::string> content, std::unordered_map<std::string, int> day_names, std::unordered_map<std::string, int> month_names,
-			std::locale locale, news_clustering::Language language);
+		int extract_year(const char *p);
 
 	private:
 
+		int now_year_ = 2019;
+
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language> languages_;
-		std::vector<Vocab> vocabs;
+		std::unordered_map<news_clustering::Language, std::locale>& locales_;
+		std::unordered_map<news_clustering::Language, Vocab> day_names_;
+		std::unordered_map<news_clustering::Language, Vocab> month_names_;
 	};
 
 }  // namespace news_clustering
