@@ -14,9 +14,9 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 
 
-int main()
+int main(int argc, char *argv[]) 
 {
-	std::cout << "KMeans have started" << std::endl;
+	std::cout << "Clustering have started" << std::endl;
 	std::cout << '\n';
 	
 	std::vector<std::string> words;
@@ -30,19 +30,47 @@ int main()
 	float value;
 	long long original_vocab_size, layer1_size;
 
-	long cut_vocab_size = 10000;
+	long long num_clusters;
 	
-	std::string cut_file_name = "../data/embedding/GoogleNews-vectors-" + std::to_string(cut_vocab_size) + "-words.bin";
-	if ((read_again_file_pointer=fopen(cut_file_name.c_str(), "rb"))==NULL) {
-		printf("Cannot open file.\n");
-		exit (1);
+	std::string original_file_name;
+
+	//
+
+	if (argc > 1)
+	{
+		original_file_name = argv[1];
+		std::cout << "Using data path: " << original_file_name << std::endl;  
+	}
+	else
+	{
+		std::cout << "You haven't specified original vocab path, pleaes specify path" << std::endl;  
+		return EXIT_FAILURE;
 	}
 
+	if (argc > 2)
+	{
+		num_clusters = std::atoll(argv[2]);
+		std::cout << "Number of clusters: " << num_clusters << std::endl;  
+	}
+	else
+	{
+		std::cout << "You haven't specified clusters number, pleaes specify it" << std::endl;  
+		return EXIT_FAILURE;
+	}
+	std::cout << std::endl;
+
+	// read
+
+	if ((read_again_file_pointer = fopen(original_file_name.c_str(), "rb")) == NULL) {
+		printf("Cannot open file.\n");
+		return EXIT_FAILURE;
+	}
+	
+	std::cout << "reading started..." << std::endl;
 	fscanf (read_again_file_pointer, "%lld %lld\n", &original_vocab_size, &layer1_size);	
 	std::cout << "vocab size: " << original_vocab_size << " embedding dimension: " << layer1_size << std::endl;
 	for (auto i = 0; i < original_vocab_size; i++)
 	{
-		//if (i % 10000 == 0) std::cout << i << std::endl;
 		fscanf (read_again_file_pointer, "%s ", str);
 		words.push_back(std::string(str));
 		embedding.clear();
@@ -55,61 +83,33 @@ int main()
 		embeddings.push_back(embedding);
 
 		vocab[words[i]] = embedding;
+		
+		if ((i + 1) % 10000 == 0) std::cout << "progress: " << (i + 1) << " from " << original_vocab_size << std::endl;
 	}
 	fclose (read_again_file_pointer);
-
-	std::cout << std::endl;
-	std::cout << "finish" << std::endl;
-
-
 	
+	std::cout << "reading finished" << std::endl;
+	std::cout << std::endl;
+
+	// cluster
+	
+	std::cout << "clustering started..." << std::endl;
+
 	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
 
-	int num_clusters = 30;
+	auto[assignments, means, counts] = metric::kmeans(embeddings, num_clusters); // clusters the data in num_clusters groups.
 
-	auto[assignments, means, counts] = metric::kmeans(embeddings, num_clusters); // clusters the data in 4 groups.
-
-	t1 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cout << std::endl;  
 
 	std::vector<std::vector<std::string>> clusters(num_clusters);
 
-	std::cout << "assignments:" << std::endl;
 	for (size_t i = 0; i < assignments.size(); i++) 
 	{
-	/*	if (i < assignments.size() - 1)
-		{
-			std::cout << assignments[i] << ", ";
-		}
-		else
-		{
-			std::cout << assignments[i] << std::endl;
-		}*/
 
 		clusters[assignments[i]].push_back(words[i]);
 	}
-	std::cout << '\n';
 
-	//std::cout << "means:" << std::endl;
-	//for (size_t i = 0; i < means.size(); i++)
-	//{
-	//	for (size_t j = 0; j < means[i].size(); j++)
-	//	{
-	//		if (j < means[i].size() - 1)
-	//		{
-	//			std::cout << means[i][j] << ", ";
-	//		}
-	//		else
-	//		{
-	//			std::cout << means[i][j] << std::endl;
-	//		}
-	//	}
-	//}
-	//std::cout << '\n';
-
-	std::cout << "counts:" << std::endl;
+	std::cout << "counts: ";
 	for (size_t i = 0; i < counts.size(); i++)
 	{
 		if (i < counts.size() - 1)
@@ -121,132 +121,63 @@ int main()
 			std::cout << counts[i] << std::endl;
 		}
 	}
-	std::cout << '\n' << std::endl;
 
-	std::cout << "clusters:" << std::endl;
-	for (size_t i = 0; i < clusters.size(); i++)
-	{
-		std::cout << "cluster #" << i << ":" << std::endl;
-		if (clusters[i].size() < 100)
-		{
-			for (size_t j = 0; j < clusters[i].size(); j++)
-			{
-				if (j < clusters[i].size() - 1)
-				{
-					std::cout << clusters[i][j] << ", ";
-				}
-				else
-				{
-					std::cout << clusters[i][j] << std::endl;
-				}
-			}
-		}
-	}
-	std::cout << '\n';
+	//std::cout << "clusters:" << std::endl;
+	//for (size_t i = 0; i < clusters.size(); i++)
+	//{
+	//	std::cout << "cluster #" << i << ":" << std::endl;
+	//	if (clusters[i].size() < 100)
+	//	{
+	//		for (size_t j = 0; j < clusters[i].size(); j++)
+	//		{
+	//			if (j < clusters[i].size() - 1)
+	//			{
+	//				std::cout << clusters[i][j] << ", ";
+	//			}
+	//			else
+	//			{
+	//				std::cout << clusters[i][j] << std::endl;
+	//			}
+	//		}
+	//	}
+	//}
 
+	t1 = std::chrono::steady_clock::now();
+	std::cout << "clustering finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;
+
+	// write
 	
 	FILE *write_file_pointer;
 	int cluster_id;
-	long vocab_size = 10000;
 
 	
-	std::string cluster_file_name = "GoogleNews-" + std::to_string(num_clusters) + "-clusters-" + std::to_string(vocab_size) + "-words.bin";
+	std::size_t pos = original_file_name.find(".bin");  
+	std::string cluster_file_name = original_file_name.substr(0, pos) + "-" + std::to_string(num_clusters) + "-clusters.bin";
 
-	if ((write_file_pointer=fopen(cluster_file_name.c_str(), "wb"))==NULL) {
+	if ((write_file_pointer = fopen(cluster_file_name.c_str(), "wb")) == NULL) {
 		printf("Cannot open file.\n");
-		exit (1);
+		return EXIT_FAILURE;
 	}
-
-	fprintf(write_file_pointer, "%lld %lld\n", vocab_size, num_clusters);
-	std::cout << original_vocab_size << " - " << num_clusters << std::endl;
-	for (auto i = 0; i < vocab_size; i++)
+	
+	std::cout << "writing started..." << std::endl;
+	fprintf(write_file_pointer, "%lld %lld\n", original_vocab_size, num_clusters);
+	std::cout << "vocab size: " << original_vocab_size << " num clusters: " << num_clusters << std::endl;
+	for (auto i = 0; i < original_vocab_size; i++)
 	{
-		if (i % 10000 == 0) std::cout << i << std::endl;
 		fprintf (write_file_pointer, "%s ", words[i].c_str());
 
 		long long c_id = assignments[i];
-		if (assignments[i] > num_clusters) std::cout << str << " " << c_id << std::endl;
+		if (assignments[i] > num_clusters) std::cout << "error: " << str << " " << c_id << std::endl;
 		
 		fprintf(write_file_pointer, "%lld\n", c_id);
-		//fwrite(&assignments[i], sizeof(int), 1, write_file_pointer);
-		//fprintf(write_file_pointer, "\n");
-
-		//std::cout << std::endl;
+		
+		if ((i + 1) % 10000 == 0) std::cout << "progress: " << (i + 1) << " from " << original_vocab_size << std::endl;
 	}
 	
 	fclose (write_file_pointer);
-
-	std::cout << "finish" << std::endl;
-
-	std::cout << std::endl;
-	std::cout << std::endl;
-	std::cout << std::endl;
 	
-	
-
-
-	std::string input = "";
-	while (input != "exit")
-	{
-		std::cout << "Type word:" << std::endl;
-		std::getline(std::cin, input);
-		std::cout << '\n';
-
-		std::vector<std::string>::iterator it = std::find(words.begin(), words.end(), input);
-		
-		if (it != words.end())
-		{
-			int index = std::distance(words.begin(), it);
-			std::cout << words[index] << " : " << assignments[index] << '\n';
-		}
-		else
-		{
-			std::cout << "cluster not found\n";
-		}
-
-		if (vocab.find(input) != vocab.end())
-		{
-			std::vector<float> input_embedding = vocab[input];
-
-			auto cosineDistance = metric::Cosine<double>();
-
-			std::unordered_map<std::string, float> distances;
-			for (auto it = vocab.begin(); it != vocab.end(); ++it)
-			{
-				distances[it->first] = cosineDistance(input_embedding, it->second);
-			}
-
-			using pair = std::pair<std::string, float>;
-			// create a empty vector of pairs
-			std::vector<pair> vec;
-
-			// copy key-value pairs from the map to the vector
-			std::copy(distances.begin(),
-				distances.end(),
-				std::back_inserter<std::vector<pair>>(vec));
-
-			// sort the vector by increasing order of its pair's second value
-			// if second value are equal, order by the pair's first value
-			std::sort(vec.begin(), vec.end(),
-				[](const pair& l, const pair& r) {
-				if (l.second != r.second)
-					return l.second > r.second;
-
-				return l.first > r.first;
-			});
-
-			// print the vector
-			for (size_t i = 0; i < 100; i++)
-			{
-				std::cout << vec[i].first << " = " << vec[i].second << '\n';
-			}
-		}
-		else
-		{
-			
-			std::cout << input << " not exist in the vocab" << std::endl;
-		}
-	}
+	std::cout << "writing finished" << std::endl;
 	
 
 	return 0;

@@ -152,15 +152,6 @@ std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively =
 }
 
 
-//////////////////////////// Parsing
-
-
-//////////////////////////// Language recognition
-
-
-//////////////////////////// News recognition
-
-
 ////////////////////////////
 
 int main(int argc, char *argv[]) 
