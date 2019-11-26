@@ -360,13 +360,12 @@ int main(int argc, char *argv[])
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
+
 	/// Categorization
-	
-	
-	
+
 	std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths;
 	word2vec_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
-	word2vec_vocab_paths[russian_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
+	word2vec_vocab_paths[russian_language] = "../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin";
 	
 	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
 	categories[english_language] = {
@@ -378,12 +377,12 @@ int main(int argc, char *argv[])
 		{"Science", "Health", "Biology", "Physics", "Genetics"} 
 	};
 	categories[russian_language] = { 
-		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
-		{"Economy", "Markets", "Finance", "Business"}, 
-		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
-		{"Sports", "Cybersport"},
-		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
-		{"Science", "Health", "Biology", "Physics", "Genetics"}
+		{"Общество", "Политика", "Выборы", "Закон", "Инцидент", "Криминал"}, 
+		{"Экономика", "Рынок", "Финансы", "Бизнес"}, 
+		{"Технология", "Гаджет", "Авто", "Приложение", "Интернет"}, 
+		{"Спорт", "Киберспорт"},
+		{"Развлечение", "Фильм", "Музыка", "Игра", "Книга", "Искусство"}, 
+		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
 	};
 	   	 
 	auto categories_detector = news_clustering::CategoriesDetector(languages, language_boost_locales, word2vec_vocab_paths, categories);
@@ -422,8 +421,8 @@ int main(int argc, char *argv[])
 	/// Threads (similar news) clustering
 	
 	std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths;
-	word2vec_clustered_vocab_paths[english_language] = "../data/embedding/GoogleNews-30-clusters-10000-words.bin";
-	word2vec_clustered_vocab_paths[russian_language] = "../data/embedding/GoogleNews-30-clusters-10000-words.bin";
+	word2vec_clustered_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin";
+	word2vec_clustered_vocab_paths[russian_language] = "../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin";
 	   	 
 	auto news_clusterizer = news_clustering::NewsClusterizer(languages, language_boost_locales, word2vec_clustered_vocab_paths);
 

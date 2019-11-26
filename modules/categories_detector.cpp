@@ -23,7 +23,7 @@ namespace news_clustering {
 	{
 		for (auto i = 0; i < languages.size(); i++)
 		{			
-			vocabs[languages[i]] = news_clustering::Word2Vec(word2vec_vocab_paths[languages[i]]);
+			vocabs[languages[i]] = news_clustering::Word2Vec(word2vec_vocab_paths[languages[i]], languages[i]);
 		}
 	}
 

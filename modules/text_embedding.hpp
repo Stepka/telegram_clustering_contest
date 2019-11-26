@@ -21,7 +21,7 @@ namespace news_clustering {
 		
 		TextEmbedder() = default;
 
-		explicit TextEmbedder(std::string path);
+		explicit TextEmbedder(std::string path, Language language);
 
 		/**
 		 * @brief 
@@ -33,6 +33,8 @@ namespace news_clustering {
 
 		
 		long long num_clusters;	
+
+		Language language_;
 
 		VocabClusters vocab_clusters;
 	};
@@ -48,7 +50,7 @@ namespace news_clustering {
 		
 		Word2Vec() = default;
 
-		explicit Word2Vec(std::string path);
+		explicit Word2Vec(std::string path, Language language);
 
 		/**
 		 * @brief 
@@ -57,7 +59,9 @@ namespace news_clustering {
 
 		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale);
 		
+		
 
+		Language language_;
 		
 		VocabEmbeddings vocab_embeddings;
 	};

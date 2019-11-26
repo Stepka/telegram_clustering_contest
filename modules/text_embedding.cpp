@@ -8,44 +8,52 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #ifndef _NEWS_CLUSTERING_TEXT_EMBEDDING_CPP
 #define _NEWS_CLUSTERING_TEXT_EMBEDDING_CPP
 
+#include <fstream>
 #include "text_embedding.hpp"
 #include "../metric/modules/distance.hpp"
 
 
 namespace news_clustering {
 
-	TextEmbedder::TextEmbedder(const std::string path)
-	{
-		FILE *read_again_file_pointer;
-		char str [80];
-		long long cluster_id;	
-		long long vocab_size;
-				
-		if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
-			std::cout << "Cannot open file.\n";
-			//exit (1);
-		}
-
-		fscanf (read_again_file_pointer, "%lld %lld\n", &vocab_size, &num_clusters);	
-		for (auto i = 0; i < vocab_size; i++)
+	TextEmbedder::TextEmbedder(const std::string path, Language language) : language_(language)
+	{		
+		std::string string_for_read;
+		long long original_vocab_size, cluster_id;
+		std::vector<float> embedding;	
+	
+		std::ifstream file_reader;
+	
+		file_reader.open(path, std::ios::binary | std::ios::out);	
+	
+		file_reader >> original_vocab_size >> num_clusters;	
+		getline(file_reader, string_for_read);
+		for (auto i = 0; i < original_vocab_size; i++)
 		{
-			fscanf (read_again_file_pointer, "%s ", str);
-			fscanf (read_again_file_pointer, "%lld\n", &cluster_id);	
-			//fread(&cluster_id, sizeof(int), 1, read_again_file_pointer);
-			//fscanf (read_again_file_pointer, "\n");
-			vocab_clusters[std::string(str)] = cluster_id;
+			getline(file_reader, string_for_read, ' ');
+			file_reader >> cluster_id;	
+			vocab_clusters[string_for_read] = cluster_id;
+
+			getline(file_reader, string_for_read);
 		}
-		fclose (read_again_file_pointer);
+		file_reader.close();
 	}
 
 	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, std::locale locale)
 	{
 		std::vector<int> result(num_clusters, 0);
+		std::string word_lower;
+
 		for (auto word : words)
 		{
-			if (vocab_clusters.find(boost::locale::to_lower(word, locale)) != vocab_clusters.end())
+			word_lower = boost::locale::to_lower(word, locale);
+			// russian vocab is lemmatized
+			if (language_ == RUSSIAN_LANGUAGE)
 			{
-				result[vocab_clusters[boost::locale::to_lower(word, locale)]]++;
+				word_lower += "_NOUN";
+			}
+			if (vocab_clusters.find(word_lower) != vocab_clusters.end())
+			{
+				result[vocab_clusters[word_lower]]++;
 			}
 		}
 
@@ -54,35 +62,32 @@ namespace news_clustering {
 
 	//
 
-	Word2Vec::Word2Vec(const std::string path)
-	{
-		FILE *read_again_file_pointer;
-		char str [80];
-		long long vocab_size;
-		long long layer1_size;
+	Word2Vec::Word2Vec(const std::string path, Language language) : language_(language)
+	{		
+		std::string string_for_read;
 		float value;
-		std::vector<float> embedding;		
-				
-		if ((read_again_file_pointer = fopen(path.c_str(), "rb")) == NULL) {
-			std::cout << "Cannot open file.\n";
-			//exit (1);
-		}
-
-		fscanf (read_again_file_pointer, "%lld %lld\n", &vocab_size, &layer1_size);	
-		for (auto i = 0; i < vocab_size; i++)
+		long long original_vocab_size, embedding_dimensions;
+		std::vector<float> embedding;	
+	
+		std::ifstream file_reader;
+	
+		file_reader.open(path, std::ios::binary | std::ios::out);	
+	
+		file_reader >> original_vocab_size >> embedding_dimensions;	
+		getline(file_reader, string_for_read);
+		for (auto i = 0; i < original_vocab_size; i++)
 		{
-			fscanf (read_again_file_pointer, "%s ", str);
+			getline(file_reader, string_for_read, ' ');
 			embedding.clear();
-			for (auto j = 0; j < layer1_size; j++)
+
+			for (auto j = 0; j < embedding_dimensions; j++)
 			{
-				fread(&value, sizeof(float), 1, read_again_file_pointer);
+				file_reader.read(reinterpret_cast<char*>(&value), sizeof(float));
 				embedding.push_back(value);
 			}
-			fscanf (read_again_file_pointer, "\n");
-
-			vocab_embeddings[std::string(str)] = embedding;
+			vocab_embeddings[string_for_read] = embedding;
 		}
-		fclose (read_again_file_pointer);
+		file_reader.close();
 	}
 
 	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale)
@@ -106,17 +111,26 @@ namespace news_clustering {
 			for (auto single_word : short_text)
 			{
 				single_word_lower = boost::locale::to_lower(single_word, locale);
+				// russian vocab is lemmatized
+				if (language_ == RUSSIAN_LANGUAGE)
+				{
+					single_word_lower += "_NOUN";
+				}
 				if (vocab_embeddings.find(single_word_lower) != vocab_embeddings.end())
 				{
 					single_word_embedding = vocab_embeddings[single_word_lower];
 					for (auto text_word : long_text)
 					{
 						text_word_lower = boost::locale::to_lower(text_word, locale);
+						// russian vocab is lemmatized
+						if (language_ == RUSSIAN_LANGUAGE)
+						{
+							text_word_lower += "_NOUN";
+						}
 						if (vocab_embeddings.find(text_word_lower) != vocab_embeddings.end())
 						{
 							text_word_embedding = vocab_embeddings[text_word_lower];
 							//std::cout << boost::locale::to_lower(word, locale) << " " << vocab[boost::locale::to_lower(word, locale)] << std::endl;
-
 							//std::cout << "    " << cosineDistance(single_word_embedding, text_word_embedding) << std::endl;
 							distances.push_back(cosineDistance(single_word_embedding, text_word_embedding));
 						}

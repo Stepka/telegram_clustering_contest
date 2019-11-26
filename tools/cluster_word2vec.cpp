@@ -16,17 +16,21 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 int main(int argc, char *argv[]) 
 {
+    // Create system default locale	
+	#if defined(_WIN64)
+		std::locale ru_locale("russian_russia.65001");
+		std::locale::global(ru_locale);	
+	#endif
+
 	std::cout << "Clustering have started" << std::endl;
 	std::cout << std::endl;
 	
 	std::vector<std::string> words;
 	std::vector<float> embedding;
-	std::vector<std::vector<float>> embeddings;
-	
+	std::vector<std::vector<float>> embeddings;	
 	std::unordered_map<std::string, std::vector<float>> vocab;
 	
-	char str [80];
-	FILE *read_again_file_pointer;
+	std::string string_for_read;
 	float value;
 	long long original_vocab_size, embedding_dimensions;
 
@@ -59,37 +63,38 @@ int main(int argc, char *argv[])
 	}
 	std::cout << std::endl;
 
-	// read
 
-	if ((read_again_file_pointer = fopen(original_file_name.c_str(), "rb")) == NULL) {
-		printf("Cannot open file.\n");
-		return EXIT_FAILURE;
-	}
+	// read
+		
+	std::ifstream file_reader;
 	
-	std::cout << "reading started..." << std::endl;
-	fscanf (read_again_file_pointer, "%lld %lld\n", &original_vocab_size, &embedding_dimensions);	
-	std::cout << "vocab size: " << original_vocab_size << " embedding dimension: " << embedding_dimensions << std::endl;
+	file_reader.open(original_file_name, std::ios::binary | std::ios::out);	
+	
+	file_reader >> original_vocab_size >> embedding_dimensions;	
+	getline(file_reader, string_for_read);
+	std::cout << "vocab size: " << original_vocab_size << " embedding dimensions: " << embedding_dimensions << std::endl;
 	for (auto i = 0; i < original_vocab_size; i++)
 	{
-		fscanf (read_again_file_pointer, "%s ", str);
-		words.push_back(std::string(str));
+		getline(file_reader, string_for_read, ' ');
+		words.push_back(string_for_read);
 		embedding.clear();
+
 		for (auto j = 0; j < embedding_dimensions; j++)
 		{
-			fread(&value, sizeof(float), 1, read_again_file_pointer);
+			file_reader.read(reinterpret_cast<char*>(&value), sizeof(float));
 			embedding.push_back(value);
 		}
-		fscanf (read_again_file_pointer, "\n");
 		embeddings.push_back(embedding);
 
 		vocab[words[i]] = embedding;
 		
 		if ((i + 1) % 10000 == 0) std::cout << "progress: " << (i + 1) << " from " << original_vocab_size << std::endl;
 	}
-	fclose (read_again_file_pointer);
+	file_reader.close();
 	
 	std::cout << "reading finished" << std::endl;
 	std::cout << std::endl;
+
 
 	// cluster
 	
@@ -122,60 +127,64 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	//std::cout << "clusters:" << std::endl;
-	//for (size_t i = 0; i < clusters.size(); i++)
-	//{
-	//	std::cout << "cluster #" << i << ":" << std::endl;
-	//	if (clusters[i].size() < 100)
-	//	{
-	//		for (size_t j = 0; j < clusters[i].size(); j++)
-	//		{
-	//			if (j < clusters[i].size() - 1)
-	//			{
-	//				std::cout << clusters[i][j] << ", ";
-	//			}
-	//			else
-	//			{
-	//				std::cout << clusters[i][j] << std::endl;
-	//			}
-	//		}
-	//	}
-	//}
+	std::cout << "clusters:" << std::endl;
+	for (size_t i = 0; i < clusters.size(); i++)
+	{
+		std::cout << "cluster #" << i << ":" << std::endl;
+		if (clusters[i].size() < 20)
+		{
+			for (size_t j = 0; j < clusters[i].size(); j++)
+			{
+				if (j < clusters[i].size() - 1)
+				{
+					std::cout << clusters[i][j] << ", ";
+				}
+				else
+				{
+					std::cout << clusters[i][j] << std::endl;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "..." << std::endl;
+		}
+	}
 
 	t1 = std::chrono::steady_clock::now();
 	std::cout << "clustering finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;
 
+
 	// write
 	
-	FILE *write_file_pointer;
-	int cluster_id;
-
+	std::cout << "writing started..." << std::endl;	
+	
+	long long cluster_id;
 	
 	std::size_t pos = original_file_name.find(".bin");  
 	std::string cluster_file_name = original_file_name.substr(0, pos) + "-" + std::to_string(num_clusters) + "-clusters.bin";
-
-	if ((write_file_pointer = fopen(cluster_file_name.c_str(), "wb")) == NULL) {
-		printf("Cannot open file.\n");
-		return EXIT_FAILURE;
-	}
 	
-	std::cout << "writing started..." << std::endl;
-	fprintf(write_file_pointer, "%lld %lld\n", original_vocab_size, num_clusters);
+	std::ofstream file_writer;
+	
+	file_writer.open(cluster_file_name, std::ios::binary | std::ios::out);	
+	
+	file_writer << original_vocab_size << " " << num_clusters << "\n";	
 	std::cout << "vocab size: " << original_vocab_size << " num clusters: " << num_clusters << std::endl;
 	for (auto i = 0; i < original_vocab_size; i++)
 	{
-		fprintf (write_file_pointer, "%s ", words[i].c_str());
+		file_writer << words[i] << ' ';	
 
-		long long c_id = assignments[i];
-		if (assignments[i] > num_clusters) std::cout << "error: " << str << " " << c_id << std::endl;
-		
-		fprintf(write_file_pointer, "%lld\n", c_id);
-		
+		cluster_id = assignments[i];
+		if (assignments[i] > num_clusters) std::cout << "error: " << words[i] << " " << cluster_id << std::endl;
+
+		file_writer << cluster_id << '\n';	
+
 		if ((i + 1) % 10000 == 0) std::cout << "progress: " << (i + 1) << " from " << original_vocab_size << std::endl;
+
 	}
 	
-	fclose (write_file_pointer);
+	file_writer.close();
 	
 	std::cout << "writing finished" << std::endl;
 	
