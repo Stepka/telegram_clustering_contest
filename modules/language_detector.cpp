@@ -8,6 +8,8 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #ifndef _NEWS_CLUSTERING_LANGUAGE_DETECTOR_CPP
 #define _NEWS_CLUSTERING_LANGUAGE_DETECTOR_CPP
 
+#include <random>
+#include <numeric>
 #include "language_detector.hpp"
 
 

@@ -27,12 +27,12 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <boost/algorithm/string.hpp>
 #include <boost/locale.hpp>
 
-#include "metric/modules/mapping.hpp"
 #include "modules/language_detector.hpp"
 #include "modules/news_detector.hpp"
 #include "modules/categories_detector.hpp"
 #include "modules/news_clusterizer.hpp"
 #include "modules/news_ranger.hpp"
+
 #include "3rdparty/json.hpp"
 
 

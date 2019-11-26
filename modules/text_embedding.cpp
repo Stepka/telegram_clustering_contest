@@ -9,6 +9,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #define _NEWS_CLUSTERING_TEXT_EMBEDDING_CPP
 
 #include "text_embedding.hpp"
+#include "../metric/modules/distance.hpp"
 
 
 namespace news_clustering {
