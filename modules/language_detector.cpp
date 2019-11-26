@@ -26,24 +26,25 @@ namespace news_clustering {
 		}
 	}
 
-	double LanguageDetector::count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
+	
+	std::unordered_map<Language, std::vector<std::string>> LanguageDetector::detect_language_by_file_names(std::vector<std::string> file_names)
 	{
-		int score = 0;
+		std::unordered_map<Language, std::vector<std::string>> result;
+		std::vector<std::string> content;
 
-		for (auto i = 0; i < sampling_indexes.size(); i++)
+		Language language;
+
+		for (auto i = 0; i < file_names.size(); i++)
 		{
-			std::string sample = content[sampling_indexes[i]];
-			for (auto word : vocab)
-			{
-				if (sample == word)
-				{
-					score++;
-				}
-			}
+			// use default locale for noww, until we do not know text's language
+			content = content_parser.parse(file_names[i], std::locale(), ' ', 2);	
+			language = detect_language_by_content(content);
+			result[language].push_back(file_names[i]);
 		}
 
-		return (double) score / sampling_indexes.size();
+		return result;
 	}
+
 
 	Language LanguageDetector::detect_language_by_content(std::vector<std::string> content)
 	{		
@@ -90,20 +91,24 @@ namespace news_clustering {
 		return UNKNOWN_LANGUAGE;
 	}
 
-	
-	std::unordered_map<std::string, Language> LanguageDetector::detect_language_by_file_names(std::vector<std::string> file_names)
-	{
-		std::unordered_map<std::string, Language> result;
-		std::vector<std::string> content;
 
-		for (auto i = 0; i < file_names.size(); i++)
+	double LanguageDetector::count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
+	{
+		int score = 0;
+
+		for (auto i = 0; i < sampling_indexes.size(); i++)
 		{
-			// use default locale for noww, until we do not know text's language
-			content = content_parser.parse(file_names[i], std::locale(), ' ', 2);			
-			result[file_names[i]] = detect_language_by_content(content);
+			std::string sample = content[sampling_indexes[i]];
+			for (auto word : vocab)
+			{
+				if (sample == word)
+				{
+					score++;
+				}
+			}
 		}
 
-		return result;
+		return (double) score / sampling_indexes.size();
 	}
 
 }  // namespace news_clustering

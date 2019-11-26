@@ -28,9 +28,9 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<std::string, std::string> CategoriesDetector::detect_categories(std::unordered_map<std::string, news_clustering::Language> file_names)
+	std::unordered_map<std::string, std::vector<std::string>> CategoriesDetector::detect_categories(std::unordered_map<std::string, news_clustering::Language> file_names)
 	{
-		std::unordered_map<std::string, std::string> result;
+		std::unordered_map<std::string, std::vector<std::string>> result;
 		
 		std::vector<std::string> content;
 		std::vector<float> text_distances;
@@ -44,7 +44,7 @@ namespace news_clustering {
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
 			// first element in the categories tags is a name of the category
-			result[i->first] = categories_[i->second][std::distance(text_distances.begin(), max_it)][0];
+			result[categories_[i->second][std::distance(text_distances.begin(), max_it)][0]].push_back(i->first);
 		}
 
 		return result;

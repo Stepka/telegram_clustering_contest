@@ -5,8 +5,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 Copyright (c) 2019 Stepan Mamontov (Panda Team)
 */
-#ifndef _NEWS_CLUSTERING_CATEGORIES_DETECTOR_HPP
-#define _NEWS_CLUSTERING_CATEGORIES_DETECTOR_HPP
+#ifndef _NEWS_CLUSTERING_NEWS_RANGER_HPP
+#define _NEWS_CLUSTERING_NEWS_RANGER_HPP
 
 #include "languages.hpp"
 #include "content_parser.hpp"
@@ -15,36 +15,34 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 namespace news_clustering {
 
 	/**
-	 * @class CategoriesDetector
+	 * @class NewsRanger
 	 * 
-	 * @brief CategoriesDetector
+	 * @brief NewsRanger
 	 */
-	struct CategoriesDetector {
+	struct NewsRanger {
 		
-		CategoriesDetector(
+		NewsRanger(
 			const std::vector<Language>& languages, 
 			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths, 
-			std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories
+			std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths
 		);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, std::vector<std::string>> detect_categories(std::unordered_map<std::string, news_clustering::Language> file_names);
+		std::unordered_map<std::string, std::vector<int>> arrange(std::unordered_map<std::string, news_clustering::Language> file_names);
 
 	private:
 
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language> languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, Word2Vec> vocabs;
-		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories_;
+		std::unordered_map<news_clustering::Language, TextEmbedder> vocabs;
 	};
 
 }  // namespace news_clustering
 
-#include "categories_detector.cpp"
+#include "news_ranger.cpp"
 
 #endif  // Header Guard

@@ -32,7 +32,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include "modules/news_detector.hpp"
 #include "modules/categories_detector.hpp"
 #include "modules/news_clusterizer.hpp"
-#include "modules/content_parser.hpp"
+#include "modules/news_ranger.hpp"
 #include "3rdparty/json.hpp"
 
 
@@ -254,8 +254,6 @@ int main(int argc, char *argv[])
 	language_boost_locales[russian_language] = ru_boost_locale;
 
 	//
-	
-    std::unordered_map<std::string, news_clustering::Language> all_articles; 
 
 
 	/// Load data
@@ -283,15 +281,26 @@ int main(int argc, char *argv[])
 	auto t1 = std::chrono::steady_clock::now();
 	auto t2 = std::chrono::steady_clock::now();	
 	
-	all_articles = language_detector.detect_language_by_file_names(file_names);
+	auto all_articles = language_detector.detect_language_by_file_names(file_names);
 
 	for (auto i = all_articles.begin(); i != all_articles.end(); i++)
 	{	
-		std::cout << i->first << " : " << i->second.to_string() << std::endl; 
-		// select only known languages
-		if (i->second.id() != news_clustering::UNKNOWN_LANGUAGE)
+		std::cout << i->first.to_string() << " : " << std::endl;
+		
+		std::cout << "[ " << std::endl;
+		for (auto k : i->second)
 		{
-			selected_language_articles[i->first] = i->second;
+			std::cout << "    " << k << std::endl;
+		}
+		std::cout << "]" << std::endl;
+
+		// select only known languages
+		if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
+		{
+			for (auto k : i->second)
+			{
+				selected_language_articles[k] = i->first;
+			}
 		}
 
 		//if (i % 1000 == 0)
@@ -323,17 +332,28 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	
-    std::unordered_map<std::string, bool> news_articles = news_detector.detect_news(selected_language_articles); 
+    auto news_articles = news_detector.detect_news(selected_language_articles); 
     std::unordered_map<std::string, news_clustering::Language> selected_news_articles; 
 
 	int index = 0;
 	for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
 	{ 
-		std::cout << i->first << " : " << i->second << std::endl; 
-		// select only news
-		if (i->second)
+		std::cout << i->first << " : " << std::endl;
+		
+		std::cout << "[ " << std::endl;
+		for (auto k : i->second)
 		{
-			selected_news_articles[i->first] = selected_language_articles[i->first];
+			std::cout << "    " << k << std::endl;
+		}
+		std::cout << "]" << std::endl;
+
+		// select only news
+		if (i->first)
+		{
+			for (auto k : i->second)
+			{
+				selected_news_articles[k] = selected_language_articles[k];
+			}
 		}
 
 		//index++;
@@ -380,11 +400,19 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	
-    std::unordered_map<std::string, std::string> categories_articles = categories_detector.detect_categories(selected_language_articles); 
+    auto categories_articles = categories_detector.detect_categories(selected_language_articles); 
 	index = 0;
 
-	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) { 
-		std::cout << i->first << " : " << i->second << std::endl;
+	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
+	{ 
+		std::cout << i->first << " : " << std::endl;
+		
+		std::cout << "[ " << std::endl;
+		for (auto k : i->second)
+		{
+			std::cout << "    " << k << std::endl;
+		}
+		std::cout << "]" << std::endl;
 
 		//index++;
 		//if (index % 1000 == 0)
@@ -411,10 +439,45 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	
-    std::unordered_map<std::string, std::vector<int>> clustered_articles = news_clusterizer.clusterize(selected_language_articles); 
+    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles); 
 	
 	index = 0;
-	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) { 
+	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
+	{ 
+		std::cout << i->first << " : " << std::endl;
+		
+		std::cout << "[ " << std::endl;
+		for (auto k : i->second)
+		{
+			std::cout << "    " << k << std::endl;
+		}
+		std::cout << "]" << std::endl;
+
+		//index++;
+		//if (index % 1000 == 0)
+		//{
+		//	t2 = std::chrono::steady_clock::now();
+		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+		//	std::cout << std::endl;  
+		//	t1 = std::chrono::steady_clock::now();
+		//}
+	}
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
+
+	/// News arrange by relevance
+	   	 
+	auto news_ranger = news_clustering::NewsRanger(languages, language_boost_locales, word2vec_clustered_vocab_paths);
+
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+	
+    std::unordered_map<std::string, std::vector<int>> ranged_articles = news_ranger.arrange(selected_language_articles); 
+	
+	index = 0;
+	for (auto i = ranged_articles.begin(); i != ranged_articles.end(); i++) { 
 		std::cout << i->first << " : ";
 		
 		std::cout << "{ ";

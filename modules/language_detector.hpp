@@ -35,7 +35,7 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, Language> detect_language_by_file_names(std::vector<std::string> file_names);
+		std::unordered_map<Language, std::vector<std::string>> detect_language_by_file_names(std::vector<std::string> file_names);
 		
 		/**
 		 * @brief 
