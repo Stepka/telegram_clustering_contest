@@ -17,7 +17,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 int main(int argc, char *argv[]) 
 {
 	std::cout << "Clustering have started" << std::endl;
-	std::cout << '\n';
+	std::cout << std::endl;
 	
 	std::vector<std::string> words;
 	std::vector<float> embedding;
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	char str [80];
 	FILE *read_again_file_pointer;
 	float value;
-	long long original_vocab_size, layer1_size;
+	long long original_vocab_size, embedding_dimensions;
 
 	long long num_clusters;
 	
@@ -67,14 +67,14 @@ int main(int argc, char *argv[])
 	}
 	
 	std::cout << "reading started..." << std::endl;
-	fscanf (read_again_file_pointer, "%lld %lld\n", &original_vocab_size, &layer1_size);	
-	std::cout << "vocab size: " << original_vocab_size << " embedding dimension: " << layer1_size << std::endl;
+	fscanf (read_again_file_pointer, "%lld %lld\n", &original_vocab_size, &embedding_dimensions);	
+	std::cout << "vocab size: " << original_vocab_size << " embedding dimension: " << embedding_dimensions << std::endl;
 	for (auto i = 0; i < original_vocab_size; i++)
 	{
 		fscanf (read_again_file_pointer, "%s ", str);
 		words.push_back(std::string(str));
 		embedding.clear();
-		for (auto j = 0; j < layer1_size; j++)
+		for (auto j = 0; j < embedding_dimensions; j++)
 		{
 			fread(&value, sizeof(float), 1, read_again_file_pointer);
 			embedding.push_back(value);
