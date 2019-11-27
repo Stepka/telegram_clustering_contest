@@ -9,6 +9,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #define _NEWS_CLUSTERING_NEWS_DETECTOR_CPP
 
 #include "news_detector.hpp"
+#include <cctype> 
 
 
 namespace news_clustering {

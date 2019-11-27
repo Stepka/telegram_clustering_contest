@@ -92,6 +92,34 @@ namespace news_clustering {
 		VocabEmbeddings vocab_embeddings;
 	};
 
+	/**
+	 * @class NER
+	 * 
+	 * @brief NER
+	 */
+	struct NER {
+		
+		NER() = default;
+
+		explicit NER(
+			const std::vector<Language>& languages, 
+			std::unordered_map<Language, std::locale>& locales
+		);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::unordered_map<std::string, std::vector<std::string>> find_name_entities(
+			std::unordered_map<std::string, news_clustering::Language> file_names, 
+			std::unordered_map<std::string, std::vector<std::string>> content
+		);
+
+		
+		std::vector<Language> languages_;
+		std::unordered_map<Language, std::locale>& locales_;
+	};
+
 }  // namespace news_clustering
 
 #include "text_embedding.cpp"

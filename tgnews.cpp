@@ -306,7 +306,31 @@ int main(int argc, char *argv[])
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
+	/// Name Entities recognition
 	
+	std::unordered_map<std::string, std::vector<std::string>> selected_language_content;	
+	std::vector<std::string> content;
+
+	for (auto i = selected_language_articles.begin(); i != selected_language_articles.end(); i++)
+	{
+		content = content_parser.parse(i->first, language_boost_locales[i->second]);
+		selected_language_content[i->first] = content;
+	}
+	
+	auto ner = news_clustering::NER(languages, language_boost_locales);
+    auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content); 
+	
+	for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
+	{
+		std::cout << i->first << " : " << std::endl;
+		
+		std::cout << "[ " << std::endl;
+		for (auto k : i->second)
+		{
+			std::cout << "    " << k << std::endl;
+		}
+		std::cout << "]" << std::endl;
+	}
 
 	/// News detection
 	
