@@ -18,12 +18,13 @@ namespace news_clustering {
 		const std::vector<Language>& languages, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales, 
 		std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths, 
+		std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers, 
 		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories
 	) : languages_(languages), locales_(locales), categories_(categories)
 	{
 		for (auto i = 0; i < languages.size(); i++)
 		{			
-			vocabs[languages[i]] = news_clustering::Word2Vec(word2vec_vocab_paths[languages[i]], languages[i]);
+			vocabs[languages[i]] = news_clustering::Word2Vec(word2vec_vocab_paths[languages[i]], lemmatizers[languages[i]], languages[i]);
 		}
 	}
 

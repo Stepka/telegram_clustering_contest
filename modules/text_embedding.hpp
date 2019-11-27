@@ -11,6 +11,32 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 namespace news_clustering {
 
 	/**
+	 * @class Lemmatizer
+	 * 
+	 * @brief Lemmatizer
+	 */
+	struct Lemmatizer {
+		
+		using Vocab = std::unordered_map<std::string, std::string>;
+		
+		Lemmatizer() = default;
+
+		explicit Lemmatizer(std::string path, Language language);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::string operator()(const std::string word);
+		
+		
+
+		Language language_;
+		
+		Vocab vocab;
+	};
+
+	/**
 	 * @class TextEmbedder
 	 * 
 	 * @brief TextEmbedder
@@ -21,13 +47,12 @@ namespace news_clustering {
 		
 		TextEmbedder() = default;
 
-		explicit TextEmbedder(std::string path, Language language);
+		explicit TextEmbedder(std::string path, Lemmatizer lemmatizer, Language language);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-
 		std::vector<int> operator()(const std::vector<std::string>& words, std::locale locale);
 		
 
@@ -35,6 +60,7 @@ namespace news_clustering {
 		long long num_clusters;	
 
 		Language language_;
+		Lemmatizer lemmatizer_;
 
 		VocabClusters vocab_clusters;
 	};
@@ -50,18 +76,18 @@ namespace news_clustering {
 		
 		Word2Vec() = default;
 
-		explicit Word2Vec(std::string path, Language language);
+		explicit Word2Vec(std::string path, Lemmatizer lemmatizer, Language language);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-
 		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale);
 		
 		
 
 		Language language_;
+		Lemmatizer lemmatizer_;
 		
 		VocabEmbeddings vocab_embeddings;
 	};

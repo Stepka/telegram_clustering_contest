@@ -362,6 +362,11 @@ int main(int argc, char *argv[])
 
 
 	/// Categorization
+	
+	// create lemmatizers here for reuse
+	std::unordered_map<news_clustering::Language, news_clustering::Lemmatizer> lemmatizers;
+	lemmatizers[english_language] = news_clustering::Lemmatizer();
+	lemmatizers[russian_language] = news_clustering::Lemmatizer("../data/embedding/dict.opcorpora-upos-tags-100000-words.voc", russian_language);
 
 	std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths;
 	word2vec_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
@@ -385,7 +390,7 @@ int main(int argc, char *argv[])
 		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
 	};
 	   	 
-	auto categories_detector = news_clustering::CategoriesDetector(languages, language_boost_locales, word2vec_vocab_paths, categories);
+	auto categories_detector = news_clustering::CategoriesDetector(languages, language_boost_locales, word2vec_vocab_paths, lemmatizers, categories);
 	
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -424,7 +429,7 @@ int main(int argc, char *argv[])
 	word2vec_clustered_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin";
 	word2vec_clustered_vocab_paths[russian_language] = "../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin";
 	   	 
-	auto news_clusterizer = news_clustering::NewsClusterizer(languages, language_boost_locales, word2vec_clustered_vocab_paths);
+	auto news_clusterizer = news_clustering::NewsClusterizer(languages, language_boost_locales, word2vec_clustered_vocab_paths, lemmatizers);
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -459,7 +464,7 @@ int main(int argc, char *argv[])
 
 	/// News arrange by relevance
 	   	 
-	auto news_ranger = news_clustering::NewsRanger(languages, language_boost_locales, word2vec_clustered_vocab_paths);
+	auto news_ranger = news_clustering::NewsRanger(languages, language_boost_locales, word2vec_clustered_vocab_paths, lemmatizers);
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();

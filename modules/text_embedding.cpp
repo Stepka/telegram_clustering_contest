@@ -15,7 +15,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 namespace news_clustering {
 
-	TextEmbedder::TextEmbedder(const std::string path, Language language) : language_(language)
+	TextEmbedder::TextEmbedder(const std::string path, Lemmatizer lemmatizer, Language language) : language_(language), lemmatizer_(lemmatizer)
 	{		
 		std::string string_for_read;
 		long long original_vocab_size, cluster_id;
@@ -46,11 +46,7 @@ namespace news_clustering {
 		for (auto word : words)
 		{
 			word_lower = boost::locale::to_lower(word, locale);
-			// russian vocab is lemmatized
-			if (language_ == RUSSIAN_LANGUAGE)
-			{
-				word_lower += "_NOUN";
-			}
+			word_lower = lemmatizer_(word_lower);
 			if (vocab_clusters.find(word_lower) != vocab_clusters.end())
 			{
 				result[vocab_clusters[word_lower]]++;
@@ -62,7 +58,7 @@ namespace news_clustering {
 
 	//
 
-	Word2Vec::Word2Vec(const std::string path, Language language) : language_(language)
+	Word2Vec::Word2Vec(const std::string path, Lemmatizer lemmatizer, Language language) : language_(language), lemmatizer_(lemmatizer)
 	{		
 		std::string string_for_read;
 		float value;
@@ -96,6 +92,7 @@ namespace news_clustering {
 		std::vector<float> distances;
 		float mean_distance;
 		float num_closest_distances = 5;
+		float num_closest_distances_cut;
 		
 		std::string single_word_lower;
 		std::string text_word_lower;
@@ -111,27 +108,17 @@ namespace news_clustering {
 			for (auto single_word : short_text)
 			{
 				single_word_lower = boost::locale::to_lower(single_word, locale);
-				// russian vocab is lemmatized
-				if (language_ == RUSSIAN_LANGUAGE)
-				{
-					single_word_lower += "_NOUN";
-				}
+				single_word_lower = lemmatizer_(single_word_lower);
 				if (vocab_embeddings.find(single_word_lower) != vocab_embeddings.end())
 				{
 					single_word_embedding = vocab_embeddings[single_word_lower];
 					for (auto text_word : long_text)
 					{
 						text_word_lower = boost::locale::to_lower(text_word, locale);
-						// russian vocab is lemmatized
-						if (language_ == RUSSIAN_LANGUAGE)
-						{
-							text_word_lower += "_NOUN";
-						}
+						text_word_lower = lemmatizer_(text_word_lower);
 						if (vocab_embeddings.find(text_word_lower) != vocab_embeddings.end())
 						{
 							text_word_embedding = vocab_embeddings[text_word_lower];
-							//std::cout << boost::locale::to_lower(word, locale) << " " << vocab[boost::locale::to_lower(word, locale)] << std::endl;
-							//std::cout << "    " << cosineDistance(single_word_embedding, text_word_embedding) << std::endl;
 							distances.push_back(cosineDistance(single_word_embedding, text_word_embedding));
 						}
 					}
@@ -141,7 +128,15 @@ namespace news_clustering {
 
 			std::sort(distances.begin(), distances.end(), std::greater<float>());
 			mean_distance = 0;
-			for (size_t i = 0; i < num_closest_distances; i++)
+			if (distances.size() < num_closest_distances)
+			{
+				num_closest_distances_cut = distances.size();
+			}
+			else
+			{
+				num_closest_distances_cut = num_closest_distances;
+			}
+			for (size_t i = 0; i < num_closest_distances_cut; i++)
 			{
 				//std::cout << distances[i] << '\n';
 				mean_distance += distances[i];
@@ -152,6 +147,59 @@ namespace news_clustering {
 		}
 
 		return result;
+	}
+
+	//
+
+	Lemmatizer::Lemmatizer(const std::string path, Language language) : language_(language)
+	{		
+		std::string string_for_read, word, p_o_s, lemma = "";
+		std::stringstream string_for_read_stream;
+
+		long long lemma_id;	
+	
+		std::ifstream file_reader;
+	
+		file_reader.open(path, std::ios::out);	
+		
+		while (file_reader >> lemma_id)
+		{
+			getline(file_reader, string_for_read);
+
+			do
+			{
+				getline(file_reader, string_for_read);
+				if (string_for_read.size() != 0)
+				{
+					string_for_read_stream = std::stringstream(string_for_read);
+					getline(string_for_read_stream, word, ' ');
+					if (lemma == "")
+					{
+						lemma = word;
+					}
+				
+					getline(string_for_read_stream, p_o_s);
+			
+					vocab[word] = lemma + "_" + p_o_s;
+				}
+				else
+				{
+					lemma = "";
+				}
+			} while (string_for_read.size() != 0);
+		}
+
+		file_reader.close();
+	}
+
+	std::string Lemmatizer::operator()(const std::string word)
+	{
+		if (vocab.find(word) != vocab.end())
+		{
+			return vocab[word];
+		}
+
+		return word;
 	}
 
 }  // namespace news_clustering

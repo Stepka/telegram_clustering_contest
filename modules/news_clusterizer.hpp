@@ -24,7 +24,8 @@ namespace news_clustering {
 		NewsClusterizer(
 			const std::vector<Language>& languages, 
 			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths
+			std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths, 
+			std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers
 		);
 
 		/**

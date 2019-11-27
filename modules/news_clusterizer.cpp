@@ -18,12 +18,13 @@ namespace news_clustering {
 	NewsClusterizer::NewsClusterizer(
 		const std::vector<Language>& languages, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales, 
-		std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths
+		std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths, 
+		std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers
 	) : languages_(languages), locales_(locales)
 	{
 		for (auto i = 0; i < languages.size(); i++)
 		{			
-			vocabs[languages[i]] = news_clustering::TextEmbedder(word2vec_clustered_vocab_paths[languages[i]], languages[i]);
+			vocabs[languages[i]] = news_clustering::TextEmbedder(word2vec_clustered_vocab_paths[languages[i]], lemmatizers[languages[i]], languages[i]);
 		}
 	}
 
