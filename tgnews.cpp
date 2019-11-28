@@ -28,6 +28,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <boost/locale.hpp>
 
 #include "modules/language_detector.hpp"
+#include "modules/name_entities_recognizer.hpp"
 #include "modules/news_detector.hpp"
 #include "modules/categories_detector.hpp"
 #include "modules/news_clusterizer.hpp"
@@ -160,6 +161,7 @@ int main(int argc, char *argv[])
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
+
 	
     // Create system default locale
     boost::locale::generator gen;
@@ -256,6 +258,44 @@ int main(int argc, char *argv[])
 	
 	auto content_parser = news_clustering::ContentParser();
 
+
+	/// Data and vocabs prepare
+	
+	// create lemmatizers here for reuse
+	std::unordered_map<news_clustering::Language, news_clustering::Lemmatizer> lemmatizers;
+	lemmatizers[english_language] = news_clustering::Lemmatizer();
+	lemmatizers[russian_language] = news_clustering::Lemmatizer("../data/embedding/dict.opcorpora-upos-tags-100000-words.voc", russian_language, "_PROPN");
+			
+
+	std::unordered_map<news_clustering::Language, news_clustering::TextEmbedder> text_embedders;
+	text_embedders[english_language] = news_clustering::TextEmbedder("../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin", lemmatizers[english_language], english_language);
+	text_embedders[russian_language] = news_clustering::TextEmbedder("../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin", lemmatizers[russian_language], russian_language);
+			
+
+	std::unordered_map<news_clustering::Language, news_clustering::Word2Vec> word2vec_embedders;
+	word2vec_embedders[english_language] = news_clustering::Word2Vec("../data/embedding/GoogleNews-vectors-10000-words.bin", lemmatizers[english_language], english_language);
+	word2vec_embedders[russian_language] = news_clustering::Word2Vec("../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin", lemmatizers[russian_language], russian_language);
+	
+	
+	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
+	categories[english_language] = {
+		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
+		{"Economy", "Markets", "Finance", "Business"}, 
+		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
+		{"Sports", "Cybersport"},
+		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
+		{"Science", "Health", "Biology", "Physics", "Genetics"} 
+	};
+	categories[russian_language] = { 
+		{"Общество", "Политика", "Выборы", "Закон", "Инцидент", "Криминал"}, 
+		{"Экономика", "Рынок", "Финансы", "Бизнес"}, 
+		{"Технология", "Гаджет", "Авто", "Приложение", "Интернет"}, 
+		{"Спорт", "Киберспорт"},
+		{"Развлечение", "Фильм", "Музыка", "Игра", "Книга", "Искусство"}, 
+		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
+	};
+
+
 	/// Language detection
 
 	// load vocabularies  with top frequency words for each language
@@ -305,6 +345,7 @@ int main(int argc, char *argv[])
 	t2 = std::chrono::steady_clock::now();
 	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
+	
 
 	/// Name Entities recognition
 	
@@ -316,8 +357,8 @@ int main(int argc, char *argv[])
 		content = content_parser.parse(i->first, language_boost_locales[i->second]);
 		selected_language_content[i->first] = content;
 	}
-	
-	auto ner = news_clustering::NER(languages, language_boost_locales);
+
+	auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
     auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content); 
 	
 	for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
@@ -386,35 +427,8 @@ int main(int argc, char *argv[])
 
 
 	/// Categorization
-	
-	// create lemmatizers here for reuse
-	std::unordered_map<news_clustering::Language, news_clustering::Lemmatizer> lemmatizers;
-	lemmatizers[english_language] = news_clustering::Lemmatizer();
-	lemmatizers[russian_language] = news_clustering::Lemmatizer("../data/embedding/dict.opcorpora-upos-tags-100000-words.voc", russian_language);
-
-	std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths;
-	word2vec_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words.bin";
-	word2vec_vocab_paths[russian_language] = "../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin";
-	
-	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
-	categories[english_language] = {
-		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
-		{"Economy", "Markets", "Finance", "Business"}, 
-		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
-		{"Sports", "Cybersport"},
-		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
-		{"Science", "Health", "Biology", "Physics", "Genetics"} 
-	};
-	categories[russian_language] = { 
-		{"Общество", "Политика", "Выборы", "Закон", "Инцидент", "Криминал"}, 
-		{"Экономика", "Рынок", "Финансы", "Бизнес"}, 
-		{"Технология", "Гаджет", "Авто", "Приложение", "Интернет"}, 
-		{"Спорт", "Киберспорт"},
-		{"Развлечение", "Фильм", "Музыка", "Игра", "Книга", "Искусство"}, 
-		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
-	};
 	   	 
-	auto categories_detector = news_clustering::CategoriesDetector(languages, language_boost_locales, word2vec_vocab_paths, lemmatizers, categories);
+	auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
 	
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -448,12 +462,8 @@ int main(int argc, char *argv[])
 
 
 	/// Threads (similar news) clustering
-	
-	std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths;
-	word2vec_clustered_vocab_paths[english_language] = "../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin";
-	word2vec_clustered_vocab_paths[russian_language] = "../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin";
 	   	 
-	auto news_clusterizer = news_clustering::NewsClusterizer(languages, language_boost_locales, word2vec_clustered_vocab_paths, lemmatizers);
+	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -488,7 +498,7 @@ int main(int argc, char *argv[])
 
 	/// News arrange by relevance
 	   	 
-	auto news_ranger = news_clustering::NewsRanger(languages, language_boost_locales, word2vec_clustered_vocab_paths, lemmatizers);
+	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales);
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();

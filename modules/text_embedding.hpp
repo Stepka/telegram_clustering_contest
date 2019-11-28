@@ -21,7 +21,7 @@ namespace news_clustering {
 		
 		Lemmatizer() = default;
 
-		explicit Lemmatizer(std::string path, Language language);
+		explicit Lemmatizer(std::string path, Language language, std::string default_suffix = "");
 
 		/**
 		 * @brief 
@@ -30,9 +30,8 @@ namespace news_clustering {
 		std::string operator()(const std::string word);
 		
 		
-
-		Language language_;
-		
+		std::string default_suffix_ = "";
+		Language language_;		
 		Vocab vocab;
 	};
 
@@ -54,6 +53,12 @@ namespace news_clustering {
 		 * @return 
 		 */
 		std::vector<int> operator()(const std::vector<std::string>& words, std::locale locale);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		bool is_exist_in_vocab(const std::string word, std::locale locale);
 		
 
 		
@@ -90,34 +95,6 @@ namespace news_clustering {
 		Lemmatizer lemmatizer_;
 		
 		VocabEmbeddings vocab_embeddings;
-	};
-
-	/**
-	 * @class NER
-	 * 
-	 * @brief NER
-	 */
-	struct NER {
-		
-		NER() = default;
-
-		explicit NER(
-			const std::vector<Language>& languages, 
-			std::unordered_map<Language, std::locale>& locales
-		);
-
-		/**
-		 * @brief 
-		 * @return 
-		 */
-		std::unordered_map<std::string, std::vector<std::string>> find_name_entities(
-			std::unordered_map<std::string, news_clustering::Language> file_names, 
-			std::unordered_map<std::string, std::vector<std::string>> content
-		);
-
-		
-		std::vector<Language> languages_;
-		std::unordered_map<Language, std::locale>& locales_;
 	};
 
 }  // namespace news_clustering

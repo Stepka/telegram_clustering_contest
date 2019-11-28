@@ -15,17 +15,12 @@ namespace news_clustering {
 	
 
 	CategoriesDetector::CategoriesDetector(
-		const std::vector<Language>& languages, 
+		std::vector<Language>& languages, 
+		std::unordered_map<news_clustering::Language, Word2Vec>& embedders, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales, 
-		std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths, 
-		std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers, 
-		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories
-	) : languages_(languages), locales_(locales), categories_(categories)
+		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>>& categories
+	) : languages_(languages), locales_(locales), categories_(categories), embedders_(embedders)
 	{
-		for (auto i = 0; i < languages.size(); i++)
-		{			
-			vocabs[languages[i]] = news_clustering::Word2Vec(word2vec_vocab_paths[languages[i]], lemmatizers[languages[i]], languages[i]);
-		}
 	}
 
 	
@@ -41,7 +36,7 @@ namespace news_clustering {
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 
 			content = content_parser.parse(i->first, locales_[i->second]);
-			text_distances = vocabs[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
+			text_distances = embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
 			// first element in the categories tags is a name of the category

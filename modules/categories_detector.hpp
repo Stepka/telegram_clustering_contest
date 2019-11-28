@@ -22,11 +22,10 @@ namespace news_clustering {
 	struct CategoriesDetector {
 		
 		CategoriesDetector(
-			const std::vector<Language>& languages, 
+			std::vector<Language>& languages, 
+			std::unordered_map<news_clustering::Language, Word2Vec>& embedders, 
 			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			std::unordered_map<news_clustering::Language, std::string> word2vec_vocab_paths, 
-			std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers, 
-			std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories
+			std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>>& categories
 		);
 
 		/**
@@ -38,10 +37,10 @@ namespace news_clustering {
 	private:
 
 		ContentParser content_parser = news_clustering::ContentParser();
-		std::vector<Language> languages_;
+		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, Word2Vec> vocabs;
-		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories_;
+		std::unordered_map<news_clustering::Language, Word2Vec>& embedders_;
+		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>>& categories_;
 	};
 
 }  // namespace news_clustering

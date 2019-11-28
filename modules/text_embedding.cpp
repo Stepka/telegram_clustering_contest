@@ -56,6 +56,14 @@ namespace news_clustering {
 		return result;
 	}
 
+	
+	bool TextEmbedder::is_exist_in_vocab(const std::string word, std::locale locale)
+	{
+		auto word_lower = boost::locale::to_lower(word, locale);
+		word_lower = lemmatizer_(word_lower);
+		return vocab_clusters.find(word_lower) != vocab_clusters.end();
+	}
+
 	//
 
 	Word2Vec::Word2Vec(const std::string path, Lemmatizer lemmatizer, Language language) : language_(language), lemmatizer_(lemmatizer)
@@ -151,7 +159,7 @@ namespace news_clustering {
 
 	//
 
-	Lemmatizer::Lemmatizer(const std::string path, Language language) : language_(language)
+	Lemmatizer::Lemmatizer(const std::string path, Language language, std::string default_suffix) : language_(language), default_suffix_(default_suffix)
 	{		
 		std::string string_for_read, word, p_o_s, lemma = "";
 		std::stringstream string_for_read_stream;
@@ -199,85 +207,9 @@ namespace news_clustering {
 			return vocab[word];
 		}
 
-		return word;
+		return word + default_suffix_;
 	}
 
-	//
-
-
-	NER::NER(
-			const std::vector<Language>& languages, 
-			std::unordered_map<Language, std::locale>& locales
-	) : languages_(languages), locales_(locales)
-	{
-	}
-	
-
-	std::unordered_map<std::string, std::vector<std::string>> NER::find_name_entities(
-		std::unordered_map<std::string, news_clustering::Language> file_names, 
-		std::unordered_map<std::string, std::vector<std::string>> contents
-	)
-	{
-
-		// TODO: check problem with "Ç" symbol. Looks like it is interpretated as special symbol and return caret by one symbol back
-		std::vector<std::string> content;
-		std::vector<std::string> ngram;
-		std::vector<std::vector<std::string>> ngrams;
-		std::vector<std::string> name_entities;
-		std::unordered_map<std::string, std::vector<std::string>> result;
-		std::string entity;
-		std::string lower;
-
-		std::locale locale;
-
-		bool ngramm_started = false;
-		
-		for (auto c = file_names.begin(); c != file_names.end(); c++)
-		{
-			content = contents[c->first];
-			locale = locales_[c->second];
-			for (auto i = 0; i < content.size(); i++)
-			{
-				lower = boost::locale::to_lower(content[i], locale);
-				if (lower != content[i])
-				{
-					if (!ngramm_started)
-					{
-						ngramm_started = true;
-					}
-					ngram.push_back(lower);
-				}
-				else
-				{
-					if (ngram.size() > 1)
-					{
-						ngrams.push_back(ngram);
-					}
-					ngramm_started = false;
-					ngram.clear();
-				}
-			}
-
-			
-			for (auto n : ngrams)
-			{
-				for (auto i = 0; i < n.size() - 1; i++)
-				{
-					entity = n[i] + "_";
-				}
-				entity += n[n.size() - 1];
-				name_entities.push_back(entity);
-			}
-			
-			result[c->first] = name_entities;
-			name_entities.clear();
-			ngrams.clear();
-			ngram.clear();
-			ngramm_started = false;
-		}
-
-		return result;
-	};
 
 }  // namespace news_clustering
 #endif

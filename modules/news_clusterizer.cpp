@@ -16,16 +16,11 @@ namespace news_clustering {
 	
 
 	NewsClusterizer::NewsClusterizer(
-		const std::vector<Language>& languages, 
-		std::unordered_map<news_clustering::Language, std::locale>& locales, 
-		std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths, 
-		std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers
-	) : languages_(languages), locales_(locales)
+		std::vector<Language>& languages, 
+		std::unordered_map<Language, TextEmbedder>& embedders, 
+		std::unordered_map<news_clustering::Language, std::locale>& locales
+	) : languages_(languages), locales_(locales), embedders_(embedders)
 	{
-		for (auto i = 0; i < languages.size(); i++)
-		{			
-			vocabs[languages[i]] = news_clustering::TextEmbedder(word2vec_clustered_vocab_paths[languages[i]], lemmatizers[languages[i]], languages[i]);
-		}
 	}
 
 	
@@ -43,7 +38,7 @@ namespace news_clustering {
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 			
 			content = content_parser.parse(i->first, locales_[i->second]);   
-			text_embedding = vocabs[i->second](content, locales_[i->second]);
+			text_embedding = embedders_[i->second](content, locales_[i->second]);
 			
 			
 			indexed_file_names[i->second].push_back(i->first);

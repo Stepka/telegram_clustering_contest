@@ -22,10 +22,9 @@ namespace news_clustering {
 	struct NewsRanger {
 		
 		NewsRanger(
-			const std::vector<Language>& languages, 
-			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			std::unordered_map<news_clustering::Language, std::string> word2vec_clustered_vocab_paths, 
-			std::unordered_map<news_clustering::Language, Lemmatizer>& lemmatizers
+			std::vector<Language>& languages, 
+			std::unordered_map<Language, TextEmbedder>& embedders, 
+			std::unordered_map<news_clustering::Language, std::locale>& locales
 		);
 
 		/**
@@ -37,9 +36,9 @@ namespace news_clustering {
 	private:
 
 		ContentParser content_parser = news_clustering::ContentParser();
-		std::vector<Language> languages_;
+		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, TextEmbedder> vocabs;
+		std::unordered_map<news_clustering::Language, TextEmbedder>& embedders_;
 	};
 
 }  // namespace news_clustering
