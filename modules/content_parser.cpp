@@ -75,6 +75,24 @@ namespace news_clustering {
 		return words;
 	}
 
+	std::vector<std::string> ContentParser::parse_by_lines(std::string filename, std::locale locale)
+	{
+		std::vector<std::string> lines;
+		std::string line;
+
+		std::fstream fin;
+		fin.imbue(locale);
+
+		fin.open(filename, std::ios::in);
+
+		while (getline(fin, line))
+		{
+			lines.push_back(line);
+		}
+
+		return lines;
+	}
+
 	std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag)
 	{
 		std::vector<std::string> vocab = read_simple_vocabulary(filename, locale);

@@ -19,15 +19,11 @@ namespace news_clustering {
 	 * @brief LanguageDetector
 	 */
 	struct NewsDetector {
-		
-		using Vocab = std::unordered_map<std::string, int>;
 
 		NewsDetector(
-			const std::vector<Language>& languages, 
+			std::vector<Language>& languages, 
 			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			std::unordered_map<news_clustering::Language, std::string>& day_names_path, 
-			std::unordered_map<news_clustering::Language, std::string>& month_names_path, 
-			int now_year = 2019
+			DatesExtractor& dates_extractor
 		);
 
 		/**
@@ -36,36 +32,17 @@ namespace news_clustering {
 		 */
 		std::unordered_map<bool, std::vector<std::string>> detect_news(
 			std::unordered_map<std::string, news_clustering::Language>& file_names, 
-			std::unordered_map<std::string, std::vector<std::string>>& contents
+			std::unordered_map<std::string, std::vector<std::string>>& contents, 
+			std::unordered_map<std::string, std::vector<std::vector<int>>>& dates, 
+			std::unordered_map<std::string, std::vector<std::string>>& name_entities
 		);
-
-		/**
-		 * @brief 
-		 * @return 
-		 */
-		std::vector<std::vector<int>> find_dates(std::vector<std::string> content, news_clustering::Language language);
-			
-		/**
-		 * @brief 
-		 * @return dd.mm.yyyy, f.e. 28.01.2019
-		 */
-		std::vector<int> check_if_date(std::string part_1, std::string part_2, std::string part_3, news_clustering::Language language);
-		
-		/**
-		 * @brief 
-		 * @return 
-		 */
-		int extract_year(const char *p);
 
 	private:
 
-		int now_year_ = 2019;
-
 		ContentParser content_parser = news_clustering::ContentParser();
-		std::vector<Language> languages_;
+		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, Vocab> day_names_;
-		std::unordered_map<news_clustering::Language, Vocab> month_names_;
+		DatesExtractor& dates_extractor_;
 	};
 
 }  // namespace news_clustering

@@ -25,18 +25,24 @@ namespace news_clustering {
 		 * @return 
 		 */
 		std::vector<std::string> parse(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 1);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::string> parse_by_lines(std::string filename, std::locale locale);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::string> ContentParser::read_simple_vocabulary(std::string filename, std::locale locale);
+		std::vector<std::string> read_simple_vocabulary(std::string filename, std::locale locale);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag);
+		std::unordered_map<std::string, int> read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag);
 	};
 
 }  // namespace news_clustering
