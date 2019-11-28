@@ -31,7 +31,10 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, std::vector<int>> arrange(std::unordered_map<std::string, news_clustering::Language> file_names);
+		std::unordered_map<std::string, std::vector<int>> arrange(
+			std::unordered_map<std::string, news_clustering::Language>& file_names, 
+			std::unordered_map<std::string, std::vector<std::string>>& contents
+		);
 
 	private:
 

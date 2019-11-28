@@ -23,7 +23,10 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<std::string, std::vector<int>> NewsRanger::arrange(std::unordered_map<std::string, news_clustering::Language> file_names)
+	std::unordered_map<std::string, std::vector<int>> NewsRanger::arrange(
+		std::unordered_map<std::string, news_clustering::Language>& file_names, 
+		std::unordered_map<std::string, std::vector<std::string>>& contents
+	)
 	{
 		std::unordered_map<std::string, std::vector<int>> result;
 		
@@ -34,7 +37,7 @@ namespace news_clustering {
 		
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 			
-			content = content_parser.parse(i->first, locales_[i->second]);   
+			content = contents[i->first];   
 			text_embedding = embedders_[i->second](content, locales_[i->second]);
 			
 			result[i->first] = text_embedding;

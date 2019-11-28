@@ -34,7 +34,10 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<bool, std::vector<std::string>> detect_news(std::unordered_map<std::string, news_clustering::Language> file_names);
+		std::unordered_map<bool, std::vector<std::string>> detect_news(
+			std::unordered_map<std::string, news_clustering::Language>& file_names, 
+			std::unordered_map<std::string, std::vector<std::string>>& contents
+		);
 
 		/**
 		 * @brief 

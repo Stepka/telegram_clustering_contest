@@ -31,7 +31,10 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<bool, std::vector<std::string>> NewsDetector::detect_news(std::unordered_map<std::string, news_clustering::Language> file_names)
+	std::unordered_map<bool, std::vector<std::string>> NewsDetector::detect_news(
+		std::unordered_map<std::string, news_clustering::Language>& file_names, 
+		std::unordered_map<std::string, std::vector<std::string>>& contents
+	)
 	{
 		std::unordered_map<bool, std::vector<std::string>> result;
 
@@ -40,7 +43,7 @@ namespace news_clustering {
 
 		for (auto i = file_names.begin(); i != file_names.end(); i++) 
 		{ 		
-			content = content_parser.parse(i->first, locales_[i->second]);   
+			content = contents[i->first]; 
 			dates = find_dates(content, i->second); 
 			
 			result[dates.size() > 0].push_back(i->first);

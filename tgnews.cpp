@@ -161,6 +161,10 @@ int main(int argc, char *argv[])
 	
 	std::cout << "tgnews have started" << std::endl;  
 	std::cout << std::endl;  
+	
+	auto t0 = std::chrono::steady_clock::now();
+	auto t1 = std::chrono::steady_clock::now();
+	auto t2 = std::chrono::steady_clock::now();	
 
 	
     // Create system default locale
@@ -231,7 +235,53 @@ int main(int argc, char *argv[])
 	std::cout << std::endl;  
 
 	/// variables
+
+	//
+
+
+	/// Load data
+
+	std::cout << "Data loading..." << std::endl;  
+
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+
+
+	auto file_names = selectHtmlFiles(data_path);
+	std::cout << "Num files: " << file_names.size() << std::endl;  
+
 	
+	auto content_parser = news_clustering::ContentParser();
+	
+	std::unordered_map<std::string, std::vector<std::string>> all_content;	
+	std::vector<std::string> content;
+
+	for (auto i = 0; i < file_names.size(); i++)
+	{
+		content = content_parser.parse(file_names[i], std::locale(), ' ', 2);
+		all_content[file_names[i]] = content;
+	}
+	
+
+    std::unordered_map<std::string, news_clustering::Language> selected_language_articles; 
+    std::unordered_map<std::string, std::vector<std::string>> selected_language_content; 
+	
+    std::unordered_map<std::string, news_clustering::Language> selected_news_articles; 
+    std::unordered_map<std::string, std::vector<std::string>> selected_news_content; 
+
+
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
+
+	/// Data and vocabs prepare
+
+	std::cout << "Vocabs parsing..." << std::endl;  
+
+	t0 = std::chrono::steady_clock::now();
+	
+	//
 	auto english_language = news_clustering::Language(news_clustering::ENGLISH_LANGUAGE);
 	auto russian_language = news_clustering::Language(news_clustering::RUSSIAN_LANGUAGE);
 
@@ -240,43 +290,41 @@ int main(int argc, char *argv[])
 		russian_language
 	};
 
-	//
-	
+	//	
 	std::unordered_map<news_clustering::Language, std::locale> language_boost_locales;
 	language_boost_locales[english_language] = en_boost_locale;
 	language_boost_locales[russian_language] = ru_boost_locale;
-
-	//
-
-
-	/// Load data
-
-	auto file_names = selectHtmlFiles(data_path);
-	std::cout << "Num files: " << file_names.size() << std::endl;  
-	std::cout << std::endl;  
-
-	
-	auto content_parser = news_clustering::ContentParser();
-
-
-	/// Data and vocabs prepare
 	
 	// create lemmatizers here for reuse
 	std::unordered_map<news_clustering::Language, news_clustering::Lemmatizer> lemmatizers;
 	lemmatizers[english_language] = news_clustering::Lemmatizer();
 	lemmatizers[russian_language] = news_clustering::Lemmatizer("../data/embedding/dict.opcorpora-upos-tags-100000-words.voc", russian_language, "_PROPN");
 			
-
+	//
 	std::unordered_map<news_clustering::Language, news_clustering::TextEmbedder> text_embedders;
 	text_embedders[english_language] = news_clustering::TextEmbedder("../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin", lemmatizers[english_language], english_language);
 	text_embedders[russian_language] = news_clustering::TextEmbedder("../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin", lemmatizers[russian_language], russian_language);
 			
-
+	//
 	std::unordered_map<news_clustering::Language, news_clustering::Word2Vec> word2vec_embedders;
 	word2vec_embedders[english_language] = news_clustering::Word2Vec("../data/embedding/GoogleNews-vectors-10000-words.bin", lemmatizers[english_language], english_language);
 	word2vec_embedders[russian_language] = news_clustering::Word2Vec("../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin", lemmatizers[russian_language], russian_language);
 	
+	//
+	std::vector<std::string> top_freq_vocab_paths;
+	top_freq_vocab_paths.push_back("assets/vocabs/top_english_words.voc");
+	top_freq_vocab_paths.push_back("assets/vocabs/top_russian_words.voc");
 	
+	//
+	std::unordered_map<news_clustering::Language, std::string> day_names_path;
+	day_names_path[english_language] = "assets/vocabs/english_day_names.voc";
+	day_names_path[russian_language] = "assets/vocabs/russian_day_names.voc";
+	
+	std::unordered_map<news_clustering::Language, std::string> month_names_path;
+	month_names_path[english_language] = "assets/vocabs/english_month_names.voc";
+	month_names_path[russian_language] = "assets/vocabs/russian_month_names.voc";
+
+	//
 	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
 	categories[english_language] = {
 		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
@@ -295,25 +343,23 @@ int main(int argc, char *argv[])
 		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
 	};
 
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Vocab have parsed (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
 
 	/// Language detection
-
-	// load vocabularies  with top frequency words for each language
 	
-	std::vector<std::string> top_freq_vocab_paths;
-	top_freq_vocab_paths.push_back("assets/vocabs/top_english_words.voc");
-	top_freq_vocab_paths.push_back("assets/vocabs/top_russian_words.voc");
+	std::cout << "Language detection..." << std::endl;  
+
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
 	
 	auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
-
-    std::unordered_map<std::string, news_clustering::Language> selected_language_articles; 
 	
-	auto t0 = std::chrono::steady_clock::now();
-	auto t1 = std::chrono::steady_clock::now();
-	auto t2 = std::chrono::steady_clock::now();	
+	auto all_articles = language_detector.detect_language(all_content);
 	
-	auto all_articles = language_detector.detect_language_by_file_names(file_names);
-
+	int index = 0;
 	for (auto i = all_articles.begin(); i != all_articles.end(); i++)
 	{	
 		std::cout << i->first.to_string() << " : " << std::endl;
@@ -331,6 +377,7 @@ int main(int argc, char *argv[])
 			for (auto k : i->second)
 			{
 				selected_language_articles[k] = i->first;
+				selected_language_content[k] = all_content[k];
 			}
 		}
 
@@ -342,21 +389,18 @@ int main(int argc, char *argv[])
 		//	t1 = std::chrono::steady_clock::now();
 		//}
 	}
+
 	t2 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 	
 
 	/// Name Entities recognition
 	
-	std::unordered_map<std::string, std::vector<std::string>> selected_language_content;	
-	std::vector<std::string> content;
+	std::cout << "Name Entities recognition..." << std::endl;  
 
-	for (auto i = selected_language_articles.begin(); i != selected_language_articles.end(); i++)
-	{
-		content = content_parser.parse(i->first, language_boost_locales[i->second]);
-		selected_language_content[i->first] = content;
-	}
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
 
 	auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
     auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content); 
@@ -373,25 +417,23 @@ int main(int argc, char *argv[])
 		std::cout << "]" << std::endl;
 	}
 
+	t2 = std::chrono::steady_clock::now();
+	std::cout << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << std::endl;  
+
+
 	/// News detection
 	
-	std::unordered_map<news_clustering::Language, std::string> day_names_path;
-	day_names_path[english_language] = "assets/vocabs/english_day_names.voc";
-	day_names_path[russian_language] = "assets/vocabs/russian_day_names.voc";
-	
-	std::unordered_map<news_clustering::Language, std::string> month_names_path;
-	month_names_path[english_language] = "assets/vocabs/english_month_names.voc";
-	month_names_path[russian_language] = "assets/vocabs/russian_month_names.voc";
-	
-	auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales, day_names_path, month_names_path);
+	std::cout << "News detection..." << std::endl;  
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	
-    auto news_articles = news_detector.detect_news(selected_language_articles); 
-    std::unordered_map<std::string, news_clustering::Language> selected_news_articles; 
+	auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales, day_names_path, month_names_path);
+	
+    auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content); 
 
-	int index = 0;
+	index = 0;
 	for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
 	{ 
 		std::cout << i->first << " : " << std::endl;
@@ -409,6 +451,7 @@ int main(int argc, char *argv[])
 			for (auto k : i->second)
 			{
 				selected_news_articles[k] = selected_language_articles[k];
+				selected_news_content[k] = all_content[k];
 			}
 		}
 
@@ -421,21 +464,24 @@ int main(int argc, char *argv[])
 		//	t1 = std::chrono::steady_clock::now();
 		//}
 	}
+
 	t2 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << "News detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
 
 	/// Categorization
-	   	 
-	auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
+	
+	std::cout << "News categorization..." << std::endl;  
 	
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
+	   	 
+	auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
 	
-    auto categories_articles = categories_detector.detect_categories(selected_language_articles); 
+    auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
+	
 	index = 0;
-
 	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 	{ 
 		std::cout << i->first << " : " << std::endl;
@@ -456,19 +502,24 @@ int main(int argc, char *argv[])
 		//	t1 = std::chrono::steady_clock::now();
 		//}
 	}
+
 	t2 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << "News categorization have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
 
 	/// Threads (similar news) clustering
-	   	 
-	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
+	
+	std::cout << "Threads clustering..." << std::endl;  
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
+	   	 
+	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
 	
-    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles); 
+	float eps = 4;
+	std::size_t minpts = 2;
+    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles, selected_news_content, eps, minpts); 
 	
 	index = 0;
 	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
@@ -491,19 +542,22 @@ int main(int argc, char *argv[])
 		//	t1 = std::chrono::steady_clock::now();
 		//}
 	}
+
 	t2 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << "Threads clustering have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
 
 	/// News arrange by relevance
-	   	 
-	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales);
+	
+	std::cout << "Threads arranging..." << std::endl;  
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
+	   	 
+	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales);
 	
-    std::unordered_map<std::string, std::vector<int>> ranged_articles = news_ranger.arrange(selected_language_articles); 
+    auto ranged_articles = news_ranger.arrange(selected_language_articles, selected_news_content); 
 	
 	index = 0;
 	for (auto i = ranged_articles.begin(); i != ranged_articles.end(); i++) { 
@@ -525,8 +579,9 @@ int main(int argc, char *argv[])
 		//	t1 = std::chrono::steady_clock::now();
 		//}
 	}
+
 	t2 = std::chrono::steady_clock::now();
-	std::cout << "Total (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	std::cout << "Threads arranging have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cout << std::endl;  
 
     return 0;

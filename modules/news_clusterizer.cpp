@@ -24,7 +24,11 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<std::string, std::vector<std::string>> NewsClusterizer::clusterize(std::unordered_map<std::string, news_clustering::Language> file_names)
+	std::unordered_map<std::string, std::vector<std::string>> NewsClusterizer::clusterize(
+			std::unordered_map<std::string, news_clustering::Language>& file_names, 
+			std::unordered_map<std::string, std::vector<std::string>>& contents, 
+			float eps, std::size_t minpts
+		)
 	{
 		std::unordered_map<std::string, std::vector<std::string>> result;
 		
@@ -37,7 +41,7 @@ namespace news_clustering {
 		
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 			
-			content = content_parser.parse(i->first, locales_[i->second]);   
+			content = contents[i->first];   
 			text_embedding = embedders_[i->second](content, locales_[i->second]);
 			
 			
@@ -50,7 +54,7 @@ namespace news_clustering {
 		{
 			metric::Matrix<std::vector<int>, metric::Euclidian<float>> distance_matrix(i->second);
 
-			auto[assignments, seeds, counts] = metric::dbscan(distance_matrix, (float)16.0, 2);
+			auto[assignments, seeds, counts] = metric::dbscan(distance_matrix, eps, minpts);
 
 
 			for (size_t k = 0; k < indexed_file_names[i->first].size(); k++)

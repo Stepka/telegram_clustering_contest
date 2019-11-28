@@ -29,26 +29,25 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<Language, std::vector<std::string>> LanguageDetector::detect_language_by_file_names(std::vector<std::string> file_names)
+	std::unordered_map<Language, std::vector<std::string>> LanguageDetector::detect_language(std::unordered_map<std::string, std::vector<std::string>>& contents)
 	{
 		std::unordered_map<Language, std::vector<std::string>> result;
 		std::vector<std::string> content;
 
 		Language language;
-
-		for (auto i = 0; i < file_names.size(); i++)
+		
+		for (auto c = contents.begin(); c != contents.end(); c++)
 		{
-			// use default locale for noww, until we do not know text's language
-			content = content_parser.parse(file_names[i], std::locale(), ' ', 2);	
-			language = detect_language_by_content(content);
-			result[language].push_back(file_names[i]);
+			content = c->second;
+			language = detect_language_by_single_content(content);
+			result[language].push_back(c->first);
 		}
 
 		return result;
 	}
 
 
-	Language LanguageDetector::detect_language_by_content(std::vector<std::string> content)
+	Language LanguageDetector::detect_language_by_single_content(std::vector<std::string> content)
 	{		
 		// Random sampleing 
 		std::vector<size_t> randomized_samples(content.size());
