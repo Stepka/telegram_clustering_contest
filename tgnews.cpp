@@ -265,6 +265,8 @@ int main(int argc, char *argv[])
 	
 	std::unordered_map<std::string, std::string> articles_by_category;
 
+	std::unordered_map<std::string, std::vector<std::string>> clustered_articles;
+
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cerr << std::endl;  
@@ -350,7 +352,7 @@ int main(int argc, char *argv[])
 
 	/// Language detection
 
-	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE)
+	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE)
 	{
 		std::cerr << "Language detection..." << std::endl;
 
@@ -482,7 +484,7 @@ int main(int argc, char *argv[])
 
 	/// News detection
 	
-	if (mode == NEWS_MODE || mode == CATEGORIES_MODE)
+	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE)
 	{	
 		std::cerr << "News detection..." << std::endl;  
 
@@ -584,42 +586,53 @@ int main(int argc, char *argv[])
 
 	/// Threads (similar news) clustering
 	
-	std::cerr << "Threads clustering..." << std::endl;  
+	if (mode == THREAD_MODE)
+	{	
+		std::cerr << "Threads clustering..." << std::endl;  
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 	   	 
-	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
+		auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
 	
-	float eps = 4;
-	std::size_t minpts = 2;
-    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles, selected_news_content, title_articles, eps, minpts); 
+		float eps = 4;
+		std::size_t minpts = 2;
+		clustered_articles = news_clusterizer.clusterize(selected_news_articles, selected_news_content, title_articles, eps, minpts); 
 	
-	index = 0;
-	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
-	{ 
-		//std::cout << title_articles[i->first] << " : " << std::endl;
-		
-		//std::cout << "[ " << std::endl;
-		//for (auto k : i->second)
-		//{
-		//	std::cout << "    " << k << std::endl;
-		//}
-		//std::cout << "]" << std::endl;
+		result = json();
+		index = 0;
+		for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
+		{ 
+			json thread_item = {
+				{"title", title_articles[i->first]}, 		
+				{"articles", std::vector<std::string>()}
+			};
+			for (auto k : i->second)
+			{
+				thread_item["articles"].push_back(k);
+			}
+			result.push_back(thread_item);
 
-		//index++;
-		//if (index % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	std::cout << std::endl;  
-		//	t1 = std::chrono::steady_clock::now();
-		//}
+			//index++;
+			//if (index % 1000 == 0)
+			//{
+			//	t2 = std::chrono::steady_clock::now();
+			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			//	std::cout << std::endl;  
+			//	t1 = std::chrono::steady_clock::now();
+			//}
+		}
+
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Threads clustering have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;  
+
+		if (mode == THREAD_MODE)
+		{
+			std::cout << result.dump(4) << std::endl;
+			return 0;
+		}
 	}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Threads clustering have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
 
 
 	/// News arrange by relevance
