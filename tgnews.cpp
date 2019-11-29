@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	
-	auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales, dates_extractor);
+	auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales);
 	
     auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
 
@@ -564,11 +564,11 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	   	 
-	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
+	auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
 	
 	float eps = 4;
 	std::size_t minpts = 2;
-    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles, selected_news_content, eps, minpts); 
+    auto clustered_articles = news_clusterizer.clusterize(selected_language_articles, selected_news_content, title_articles, eps, minpts); 
 	
 	index = 0;
 	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 

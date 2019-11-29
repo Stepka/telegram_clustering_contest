@@ -22,8 +22,7 @@ namespace news_clustering {
 
 		NewsDetector(
 			std::vector<Language>& languages, 
-			std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			DatesExtractor& dates_extractor
+			std::unordered_map<news_clustering::Language, std::locale>& locales
 		);
 
 		/**
@@ -42,7 +41,6 @@ namespace news_clustering {
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		DatesExtractor& dates_extractor_;
 	};
 
 }  // namespace news_clustering

@@ -18,7 +18,7 @@ namespace news_clustering {
 	
 	std::vector<std::string> ContentParser::parse(std::string filename, std::locale locale, char delimeter, int min_word_size)
 	{
-		std::vector<std::string> words;
+		std::vector<std::string> words, result;
 	
 		std::string line, word;
 
@@ -29,28 +29,40 @@ namespace news_clustering {
 
 		while (getline(fin, line))
 		{
-			boost::replace_all(line, ",", " ");
-			boost::replace_all(line, ".", " ");
-			boost::replace_all(line, ":", " ");
-			boost::replace_all(line, ";", " ");
-			boost::replace_all(line, "\"", " ");
-			boost::replace_all(line, "'", " ");
-			boost::replace_all(line, "?", " ");
-			boost::replace_all(line, "!", " ");
-			boost::replace_all(line, "-", " ");
-			boost::replace_all(line, "—", " ");
-			boost::replace_all(line, "(", " ");
-			boost::replace_all(line, ")", " ");
-			boost::replace_all(line, ">", "> ");
-			boost::replace_all(line, "<", " <");
-			boost::replace_all(line, "T", " T"); // Time identifier for datetimes 
-			std::stringstream s(line);
-			while (getline(s, word, delimeter))
+			words = split_string(line, delimeter, min_word_size);
+			result.insert(result.end(), words.begin(), words.end());
+		}
+
+		return result;
+	}
+	
+	std::vector<std::string> ContentParser::split_string(std::string line, char delimeter, int min_word_size)
+	{
+		std::vector<std::string> words;
+	
+		std::string word;
+
+		boost::replace_all(line, ",", " ");
+		boost::replace_all(line, ".", " ");
+		boost::replace_all(line, ":", " ");
+		boost::replace_all(line, ";", " ");
+		boost::replace_all(line, "\"", " ");
+		boost::replace_all(line, "'", " ");
+		boost::replace_all(line, "?", " ");
+		boost::replace_all(line, "!", " ");
+		boost::replace_all(line, "-", " ");
+		boost::replace_all(line, "—", " ");
+		boost::replace_all(line, "(", " ");
+		boost::replace_all(line, ")", " ");
+		boost::replace_all(line, ">", "> ");
+		boost::replace_all(line, "<", " <");
+		boost::replace_all(line, "T", " T"); // Time identifier for datetimes 
+		std::stringstream s(line);
+		while (getline(s, word, delimeter))
+		{
+			if (word.size() >= min_word_size)
 			{
-				if (word.size() >= min_word_size)
-				{
-					words.push_back(word);
-				}
+				words.push_back(word);
 			}
 		}
 

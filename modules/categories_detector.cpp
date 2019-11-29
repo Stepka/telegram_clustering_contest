@@ -19,7 +19,7 @@ namespace news_clustering {
 		std::unordered_map<news_clustering::Language, Word2Vec>& embedders, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales, 
 		std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>>& categories
-	) : languages_(languages), locales_(locales), categories_(categories), embedders_(embedders)
+	) : languages_(languages), locales_(locales), categories_(categories), text_embedders_(embedders)
 	{
 	}
 
@@ -39,7 +39,7 @@ namespace news_clustering {
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 			
 			content = contents[i->first];
-			text_distances = embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
+			text_distances = text_embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
 			// first element in the categories tags is a name of the category

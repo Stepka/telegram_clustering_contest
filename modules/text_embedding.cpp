@@ -149,7 +149,7 @@ namespace news_clustering {
 				//std::cout << distances[i] << '\n';
 				mean_distance += distances[i];
 			}
-			mean_distance /= num_closest_distances;
+			mean_distance /= num_closest_distances_cut;
 			//std::cout << "mean_distance = " << mean_distance << '\n';
 			result.push_back(mean_distance);
 		}

@@ -41,7 +41,7 @@ namespace news_clustering {
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, TextEmbedder>& embedders_;
+		std::unordered_map<news_clustering::Language, TextEmbedder>& text_embedders_;
 	};
 
 }  // namespace news_clustering

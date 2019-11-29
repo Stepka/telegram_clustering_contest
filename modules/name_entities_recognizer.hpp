@@ -42,7 +42,7 @@ namespace news_clustering {
 		
 		std::vector<Language> languages_;
 		std::unordered_map<Language, std::locale>& locales_;
-		std::unordered_map<Language, TextEmbedder>& embedders_;
+		std::unordered_map<Language, TextEmbedder>& text_embedders_;
 	};
 
 

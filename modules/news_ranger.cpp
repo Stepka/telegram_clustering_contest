@@ -18,7 +18,7 @@ namespace news_clustering {
 		std::vector<Language>& languages, 
 		std::unordered_map<Language, TextEmbedder>& embedders, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales
-	) : languages_(languages), locales_(locales), embedders_(embedders)
+	) : languages_(languages), locales_(locales), text_embedders_(embedders)
 	{
 	}
 
@@ -38,7 +38,7 @@ namespace news_clustering {
 		for (auto i = file_names.begin(); i != file_names.end(); i++) {
 			
 			content = contents[i->first];   
-			text_embedding = embedders_[i->second](content, locales_[i->second]);
+			text_embedding = text_embedders_[i->second](content, locales_[i->second]);
 			
 			result[i->first] = text_embedding;
 		}

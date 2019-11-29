@@ -43,6 +43,12 @@ namespace news_clustering {
 		 * @return 
 		 */
 		std::unordered_map<std::string, int> read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag);
+		
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::string> split_string(std::string line, char delimeter = ' ', int min_word_size = 1);
 	};
 
 }  // namespace news_clustering

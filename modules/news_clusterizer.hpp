@@ -23,7 +23,8 @@ namespace news_clustering {
 		
 		NewsClusterizer(
 			std::vector<Language>& languages, 
-			std::unordered_map<Language, TextEmbedder>& embedders, 
+			std::unordered_map<Language, TextEmbedder>& text_embedders, 
+			std::unordered_map<Language, Word2Vec>& word2vec_embedders, 
 			std::unordered_map<news_clustering::Language, std::locale>& locales
 		);
 
@@ -34,6 +35,7 @@ namespace news_clustering {
 		std::unordered_map<std::string, std::vector<std::string>> clusterize(
 			std::unordered_map<std::string, news_clustering::Language>& file_names, 
 			std::unordered_map<std::string, std::vector<std::string>>& contents, 
+			std::unordered_map<std::string, std::string>& titles, 
 			float eps, std::size_t minpts
 		);
 
@@ -42,7 +44,8 @@ namespace news_clustering {
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
-		std::unordered_map<news_clustering::Language, TextEmbedder>& embedders_;
+		std::unordered_map<news_clustering::Language, TextEmbedder>& text_embedders_;
+		std::unordered_map<news_clustering::Language, Word2Vec>& word2vec_embedders_;
 	};
 
 }  // namespace news_clustering

@@ -18,7 +18,7 @@ namespace news_clustering {
 			const std::vector<Language>& languages, 
 			std::unordered_map<Language, TextEmbedder>& embedders, 
 			std::unordered_map<Language, std::locale>& locales
-	) : languages_(languages), locales_(locales), embedders_(embedders)
+	) : languages_(languages), locales_(locales), text_embedders_(embedders)
 	{
 	};
 	
@@ -47,7 +47,7 @@ namespace news_clustering {
 		{
 			content = contents[c->first];
 			locale = locales_[c->second];
-			embedder = embedders_[c->second];
+			embedder = text_embedders_[c->second];
 			for (auto i = 0; i < content.size(); i++)
 			{
 				lower = boost::locale::to_lower(content[i], locale);
@@ -386,6 +386,7 @@ namespace news_clustering {
 	{
 	};
 	
+
 	std::unordered_map<std::string, std::string> TitleExtractor::find_titles(
 		std::unordered_map<std::string, news_clustering::Language> file_names
 	)
