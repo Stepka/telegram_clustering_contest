@@ -42,10 +42,10 @@ namespace news_clustering {
 			switch (language_id_)
 			{
 				case ENGLISH_LANGUAGE:
-					return "english";
+					return "en";
 
 				case RUSSIAN_LANGUAGE:
-					return "russian";
+					return "ru";
 
 				default:
 					return "unknown language"; 

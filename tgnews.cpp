@@ -232,10 +232,6 @@ int main(int argc, char *argv[])
 
 	std::cerr << std::endl;  
 
-	/// variables
-
-	//
-
 
 	/// Load data
 
@@ -271,6 +267,11 @@ int main(int argc, char *argv[])
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cerr << std::endl;  
+
+	//
+	
+	int index = 0;
+	json result;
 
 
 	/// Data and vocabs prepare
@@ -347,50 +348,59 @@ int main(int argc, char *argv[])
 
 
 	/// Language detection
-	
-	std::cerr << "Language detection..." << std::endl;  
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
-	
-	auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
-	
-	auto all_articles = language_detector.detect_language(all_content);
-	
-	int index = 0;
-	for (auto i = all_articles.begin(); i != all_articles.end(); i++)
-	{	
-		std::cout << i->first.to_string() << " : " << std::endl;
+	if (mode == LANGUAGES_MODE)
+	{
+		std::cerr << "Language detection..." << std::endl;
+
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
+
+		auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
+
+		auto all_articles = language_detector.detect_language(all_content);
 		
-		std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			std::cout << "    " << k << std::endl;
-		}
-		std::cout << "]" << std::endl;
+		index = 0;
+		for (auto i = all_articles.begin(); i != all_articles.end(); i++)
+		{		
+			// select only known languages
+			if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
+			{	
+				json lang_item = {
+					{"lang_code", i->first.to_string()}, 		
+					{"articles", std::vector<std::string>()}
+				};
 
-		// select only known languages
-		if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
-		{
-			for (auto k : i->second)
-			{
-				selected_language_articles[k] = i->first;
-				selected_language_content[k] = all_content[k];
-			}
+				for (auto k : i->second)
+				{
+					selected_language_articles[k] = i->first;
+					selected_language_content[k] = all_content[k];
+					lang_item["articles"].push_back(k);
+				}
+				result.push_back(lang_item);
+			}			
+
+			//if (i % 1000 == 0)
+			//{
+			//	t2 = std::chrono::steady_clock::now();
+			//	std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			//	std::cout << std::endl;  
+			//	t1 = std::chrono::steady_clock::now();
+			//}
 		}
 
-		//if (i % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	std::cout << std::endl;  
-		//	t1 = std::chrono::steady_clock::now();
-		//}
+		std::cout << result.dump(4) << std::endl;
+
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;
+
+		
+		if (mode == LANGUAGES_MODE)
+		{
+			return 0;
+		}
 	}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
 	
 
 	/// Name Entities recognition
