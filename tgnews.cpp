@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 
 	/// Language detection
 
-	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE)
+	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
 	{
 		std::cerr << "Language detection..." << std::endl;
 
@@ -484,7 +484,7 @@ int main(int argc, char *argv[])
 
 	/// News detection
 	
-	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE)
+	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
 	{	
 		std::cerr << "News detection..." << std::endl;  
 
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
 
 	/// Categorization
 	
-	if (mode == CATEGORIES_MODE)
+	if (mode == CATEGORIES_MODE || mode == TOP_MODE)
 	{		
 		std::cerr << "News categorization..." << std::endl;  
 	
@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
 
 	/// Threads (similar news) clustering
 	
-	if (mode == THREAD_MODE)
+	if (mode == THREAD_MODE || mode == TOP_MODE)
 	{	
 		std::cerr << "Threads clustering..." << std::endl;  
 
@@ -637,62 +637,84 @@ int main(int argc, char *argv[])
 
 	/// News arrange by relevance
 	
-	std::cerr << "Threads arranging..." << std::endl;  
+	if (mode == TOP_MODE)
+	{		
+		std::cerr << "Threads arranging..." << std::endl;  
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 	   	 
-	std::vector<int> today = {1, 11, 2019};
-	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales, today);
+		std::vector<int> today = {1, 11, 2019};
+		auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales, today);
 	
-    auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
-	std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::vector<std::string>>>> ranged_articles_by_categories;
+		auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
+		std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::vector<std::string>>>> ranged_articles_by_categories;
 	
-	index = 0;
-	
-	for (auto thread : ranged_articles)
-	{
-		for (auto i = thread.begin(); i != thread.end(); i++)
+		result = json();
+		index = 0;	
+		for (auto thread : ranged_articles)
 		{
-			ranged_articles_by_categories["any"].push_back(thread);
-			ranged_articles_by_categories[articles_by_category[i->first]].push_back(thread);
-		}
-	}
-	for (auto i = ranged_articles_by_categories.begin(); i != ranged_articles_by_categories.end(); i++) 
-	{ 
-		std::cout << i->first << " : ";
-		
-		std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			std::cout << "    { " << std::endl;
-			for (auto l = k.begin(); l != k.end(); l++)
+			for (auto i = thread.begin(); i != thread.end(); i++)
 			{
-				std::cout << "        " << title_articles[l->first] << ": " << std::endl;
-				std::cout << "        [ " << std::endl;
-				for (auto p : l->second)
-				{
-					std::cout << "            " << p << std::endl;
-				}
-				std::cout << "        ]" << std::endl;
+				ranged_articles_by_categories["any"].push_back(thread);
+				ranged_articles_by_categories[articles_by_category[i->first]].push_back(thread);
 			}
-			std::cout << "    }" << std::endl;
 		}
-		std::cout << "]" << std::endl;
+		for (auto i = ranged_articles_by_categories.begin(); i != ranged_articles_by_categories.end(); i++) 
+		{ 
+			json top_item = {
+				{"category", i->first}, 		
+				{"threads", std::vector<json>()}
+			};
+			for (auto k : i->second)
+			{
+				for (auto p = k.begin(); p != k.end(); p++)
+				{
+					json thread_item;
+					if (i->first == "any")
+					{
+						thread_item = {
+							{"title", title_articles[p->first]}, 
+							{"category", i->first}, 		
+							{"articles", std::vector<std::string>()}
+						};
+					}
+					else
+					{
+						thread_item = {
+							{"title", title_articles[p->first]}, 		
+							{"articles", std::vector<std::string>()}
+						};
+					}
+					for (auto h : p->second)
+					{
+						thread_item["articles"].push_back(h);
+					}
+					top_item["threads"].push_back(thread_item);
+				}
+			}
+			result.push_back(top_item);
 
-		//index++;
-		//if (index % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	std::cout << std::endl;  
-		//	t1 = std::chrono::steady_clock::now();
-		//}
+			//index++;
+			//if (index % 1000 == 0)
+			//{
+			//	t2 = std::chrono::steady_clock::now();
+			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			//	std::cout << std::endl;  
+			//	t1 = std::chrono::steady_clock::now();
+			//}
+		}
+
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Threads arranging have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;  
+
+		if (mode == TOP_MODE)
+		{
+			std::cout << result.dump(4) << std::endl;
+			return 0;
+		}
 	}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Threads arranging have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
 
     return 0;
 }
