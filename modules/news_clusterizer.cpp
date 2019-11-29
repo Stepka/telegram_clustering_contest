@@ -20,9 +20,9 @@ namespace news_clustering {
 	NewsClusterizer::NewsClusterizer(
 		std::vector<Language>& languages, 
 		std::unordered_map<Language, TextEmbedder>& text_embedders, 
-		std::unordered_map<Language, Word2Vec>& word2vec_embedders, 
+		//std::unordered_map<Language, Word2Vec>& word2vec_embedders, 
 		std::unordered_map<news_clustering::Language, std::locale>& locales
-	) : languages_(languages), locales_(locales), text_embedders_(text_embedders), word2vec_embedders_(word2vec_embedders)
+	) : languages_(languages), locales_(locales), text_embedders_(text_embedders)
 	{
 	}
 
@@ -140,13 +140,11 @@ namespace news_clustering {
 		std::vector<float> text_distances;
 		auto cosineDistance = metric::Cosine<float>();
 		for (auto k = clustered_by_filename.begin(); k != clustered_by_filename.end(); k++)
-		{
-			//std::cout << k->first << ": " << std::endl;
-			
+		{			
 			// splitted title
 			content = content_parser.split_string(titles[k->first]);   
 			// title embedding
-			//text_embedding = text_embedders_[file_names[k->first]](content, locales_[file_names[k->first]]);
+			text_embedding = text_embedders_[file_names[k->first]](content, locales_[file_names[k->first]]);
 				
 			title_from_cluster.clear();
 			if (k->second.size() > 1)
@@ -155,10 +153,10 @@ namespace news_clustering {
 				for (auto j = 0; j < k->second.size(); j++)
 				{
 					title_from_cluster.push_back(content_parser.split_string(titles[k->second[j]]));
-					//text_distances.push_back(cosineDistance(text_embedding, text_embeddings_by_filename[k->second[j]]));
+					text_distances.push_back(cosineDistance(text_embedding, text_embeddings_by_filename[k->second[j]]));
 				}
 
-				text_distances = word2vec_embedders_[file_names[k->first]].texts_distance(content, title_from_cluster, locales_[file_names[k->first]]);
+				//text_distances = word2vec_embedders_[file_names[k->first]].texts_distance(content, title_from_cluster, locales_[file_names[k->first]]);
 
 				auto sorted_indexes = sort_indexes(text_distances);
 				for (auto j : sorted_indexes)

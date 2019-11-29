@@ -308,9 +308,9 @@ int main(int argc, char *argv[])
 	text_embedders[russian_language] = news_clustering::TextEmbedder("../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin", lemmatizers[russian_language], russian_language);
 			
 	//
-	std::unordered_map<news_clustering::Language, news_clustering::Word2Vec> word2vec_embedders;
-	word2vec_embedders[english_language] = news_clustering::Word2Vec("../data/embedding/GoogleNews-vectors-10000-words.bin", lemmatizers[english_language], english_language);
-	word2vec_embedders[russian_language] = news_clustering::Word2Vec("../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin", lemmatizers[russian_language], russian_language);
+	//std::unordered_map<news_clustering::Language, news_clustering::Word2Vec> word2vec_embedders;
+	//word2vec_embedders[english_language] = news_clustering::Word2Vec("../data/embedding/GoogleNews-vectors-10000-words.bin", lemmatizers[english_language], english_language);
+	//word2vec_embedders[russian_language] = news_clustering::Word2Vec("../data/embedding/RusVectoresNews-2019-vectores-10000-words.bin", lemmatizers[russian_language], russian_language);
 	
 	//
 	std::vector<std::string> top_freq_vocab_paths;
@@ -329,20 +329,20 @@ int main(int argc, char *argv[])
 	//
 	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
 	categories[english_language] = {
-		{"Society", "Politics", "Elections", "Legislation", "Incidents", "Crime"}, 
-		{"Economy", "Markets", "Finance", "Business"}, 
-		{"Technology", "Gadgets", "Auto", "Apps", "Internet"}, 
-		{"Sports", "Cybersport"},
-		{"Entertainment", "Movies", "Music", "Games", "Books", "Arts"}, 
-		{"Science", "Health", "Biology", "Physics", "Genetics"} 
+		{"society", "politics", "elections", "legislation", "incidents", "crime"}, 
+		{"economy", "markets", "finance", "business"}, 
+		{"technology", "gadgets", "auto", "apps", "internet"}, 
+		{"sports", "cybersport"},
+		{"entertainment", "movies", "music", "games", "books", "arts"}, 
+		{"science", "health", "biology", "physics", "genetics"} 
 	};
 	categories[russian_language] = { 
-		{"Общество", "Политика", "Выборы", "Закон", "Инцидент", "Криминал"}, 
-		{"Экономика", "Рынок", "Финансы", "Бизнес"}, 
-		{"Технология", "Гаджет", "Авто", "Приложение", "Интернет"}, 
-		{"Спорт", "Киберспорт"},
-		{"Развлечение", "Фильм", "Музыка", "Игра", "Книга", "Искусство"}, 
-		{"Наука", "Здоровье", "Биология", "Физика", "Генетика"}
+		{"общество", "политика", "выборы", "закон", "инцидент", "криминал"}, 
+		{"экономика", "рынок", "финансы", "бизнес"}, 
+		{"технология", "гаджет", "авто", "приложение", "интернет"}, 
+		{"спорт", "киберспорт"},
+		{"развлечение", "фильм", "музыка", "игра", "книга", "искусство"}, 
+		{"наука", "здоровье", "биология", "физика", "генетика"}
 	};
 
 	t2 = std::chrono::steady_clock::now();
@@ -411,8 +411,9 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 
-	auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
-	auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
+	//auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
+	//auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
+	std::unordered_map<std::string, std::vector<std::string>> ner_articles;
 
 	//for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
 	//{
@@ -543,7 +544,8 @@ int main(int argc, char *argv[])
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
 	   	 
-		auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
+		//auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, word2vec_embedders, language_boost_locales, categories);
+		auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, language_boost_locales, categories);
 	
 		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
 	
@@ -552,12 +554,12 @@ int main(int argc, char *argv[])
 		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 		{ 
 			json category_item = {
-				{"category", i->first}, 		
+				{"category", categories[english_language][i->first][0]}, 		
 				{"articles", std::vector<std::string>()}
 			};
 			for (auto k : i->second)
 			{
-				articles_by_category[k] = i->first;
+				articles_by_category[k] = categories[english_language][i->first][0];
 				category_item["articles"].push_back(k);
 			}
 			result.push_back(category_item);
@@ -593,7 +595,8 @@ int main(int argc, char *argv[])
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
 	   	 
-		auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
+		//auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
+		auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
 	
 		float eps = 4;
 		std::size_t minpts = 2;
@@ -675,7 +678,7 @@ int main(int argc, char *argv[])
 					{
 						thread_item = {
 							{"title", title_articles[p->first]}, 
-							{"category", i->first}, 		
+							{"category", ""}, 		
 							{"articles", std::vector<std::string>()}
 						};
 					}
@@ -688,6 +691,10 @@ int main(int argc, char *argv[])
 					}
 					for (auto h : p->second)
 					{
+						if (i->first == "any")
+						{
+							thread_item["category"] = articles_by_category[h];
+						}
 						thread_item["articles"].push_back(h);
 					}
 					top_item["threads"].push_back(thread_item);
