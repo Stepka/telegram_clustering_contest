@@ -262,7 +262,8 @@ int main(int argc, char *argv[])
 	
     std::unordered_map<std::string, news_clustering::Language> selected_news_articles; 
     std::unordered_map<std::string, std::vector<std::string>> selected_news_content; 
-
+	
+	std::unordered_map<std::string, std::string> articles_by_category;
 
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
@@ -349,7 +350,7 @@ int main(int argc, char *argv[])
 
 	/// Language detection
 
-	if (mode == LANGUAGES_MODE || mode == NEWS_MODE)
+	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE)
 	{
 		std::cerr << "Language detection..." << std::endl;
 
@@ -360,7 +361,7 @@ int main(int argc, char *argv[])
 
 		auto all_articles = language_detector.detect_language(all_content);
 		
-		result.clear();
+		result = json();
 		index = 0;
 		for (auto i = all_articles.begin(); i != all_articles.end(); i++)
 		{		
@@ -371,7 +372,6 @@ int main(int argc, char *argv[])
 					{"lang_code", i->first.to_string()}, 		
 					{"articles", std::vector<std::string>()}
 				};
-
 				for (auto k : i->second)
 				{
 					selected_language_articles[k] = i->first;
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
 
 	/// News detection
 	
-	if (mode == NEWS_MODE)
+	if (mode == NEWS_MODE || mode == CATEGORIES_MODE)
 	{	
 		std::cerr << "News detection..." << std::endl;  
 
@@ -493,22 +493,12 @@ int main(int argc, char *argv[])
 	
 		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
 	
-		result.clear();
 		result = {		
 			{"articles", std::vector<std::string>()}
 		};
 		index = 0;
 		for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
 		{ 
-			//std::cout << i->first << " : " << std::endl;
-			//
-			//std::cout << "[ " << std::endl;
-			//for (auto k : i->second)
-			//{
-			//	std::cout << "    " << k << std::endl;
-			//}
-			//std::cout << "]" << std::endl;
-
 			// select only news
 			if (i->first)
 			{
@@ -544,42 +534,52 @@ int main(int argc, char *argv[])
 
 	/// Categorization
 	
-	std::cerr << "News categorization..." << std::endl;  
+	if (mode == CATEGORIES_MODE)
+	{		
+		std::cerr << "News categorization..." << std::endl;  
 	
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 	   	 
-	auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
+		auto categories_detector = news_clustering::CategoriesDetector(languages, word2vec_embedders, language_boost_locales, categories);
 	
-    auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
+		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
 	
-	std::unordered_map<std::string, std::string> articles_by_category;
-	index = 0;
-	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
-	{ 
-		//std::cout << i->first << " : " << std::endl;
-		
-		//std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			articles_by_category[k] = i->first;
-			//std::cout << "    " << k << std::endl;
+		result = json();
+		index = 0;
+		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
+		{ 
+			json category_item = {
+				{"category", i->first}, 		
+				{"articles", std::vector<std::string>()}
+			};
+			for (auto k : i->second)
+			{
+				articles_by_category[k] = i->first;
+				category_item["articles"].push_back(k);
+			}
+			result.push_back(category_item);
+
+			//index++;
+			//if (index % 1000 == 0)
+			//{
+			//	t2 = std::chrono::steady_clock::now();
+			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			//	std::cout << std::endl;  
+			//	t1 = std::chrono::steady_clock::now();
+			//}
 		}
-		//std::cout << "]" << std::endl;
 
-		//index++;
-		//if (index % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	std::cout << std::endl;  
-		//	t1 = std::chrono::steady_clock::now();
-		//}
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "News categorization have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;  
+
+		if (mode == CATEGORIES_MODE)
+		{
+			std::cout << result.dump(4) << std::endl;
+			return 0;
+		}
 	}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "News categorization have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
 
 
 	/// Threads (similar news) clustering
