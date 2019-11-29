@@ -20,20 +20,24 @@ namespace news_clustering {
 	 * @brief NewsRanger
 	 */
 	struct NewsRanger {
+
+		using NewsThread = std::unordered_map<std::string, std::vector<std::string>>;
 		
 		NewsRanger(
 			std::vector<Language>& languages, 
 			std::unordered_map<Language, TextEmbedder>& embedders, 
-			std::unordered_map<news_clustering::Language, std::locale>& locales
+			std::unordered_map<news_clustering::Language, std::locale>& locales, 
+			std::vector<int>& today
 		);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, std::vector<int>> arrange(
-			std::unordered_map<std::string, news_clustering::Language>& file_names, 
-			std::unordered_map<std::string, std::vector<std::string>>& contents
+		std::vector<std::unordered_map<std::string, std::vector<std::string>>> arrange(
+			std::unordered_map<std::string, std::vector<std::string>>& clustered_articles, 
+			std::unordered_map<std::string, std::vector<std::vector<int>>>& dates, 
+			std::unordered_map<std::string, std::vector<std::string>>& name_entities
 		);
 
 	private:
@@ -42,6 +46,11 @@ namespace news_clustering {
 		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
 		std::unordered_map<news_clustering::Language, TextEmbedder>& text_embedders_;
+		
+		std::vector<int>& today_;
+		
+		template <typename T>
+		std::vector<size_t> sort_indexes(const std::vector<T> &v);
 	};
 
 }  // namespace news_clustering

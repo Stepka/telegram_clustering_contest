@@ -140,10 +140,10 @@ namespace news_clustering {
 		std::locale locale;
 		Language language;
 		
-		for (auto i = file_names.begin(); i != file_names.end(); i++)
+		for (auto f = file_names.begin(); f != file_names.end(); f++)
 		{
-			content = contents[i->first];
-			language = i->second;
+			content = contents[f->first];
+			language = f->second;
 
 			day_names = day_names_[language];
 			month_names = month_names_[language];
@@ -171,11 +171,12 @@ namespace news_clustering {
 					if (date.size() == 3)
 					{
 						dates.push_back(date);
+						i += 2;
 					}
 				}
 			}
 
-			result[i->first] = dates;
+			result[f->first] = dates;
 			dates.clear();
 			date.clear();
 		}

@@ -44,7 +44,7 @@ namespace news_clustering {
 
 		boost::replace_all(line, ",", " ");
 		boost::replace_all(line, ".", " ");
-		boost::replace_all(line, ":", " ");
+		boost::replace_all(line, ": ", " ");
 		boost::replace_all(line, ";", " ");
 		boost::replace_all(line, "\"", " ");
 		boost::replace_all(line, "'", " ");

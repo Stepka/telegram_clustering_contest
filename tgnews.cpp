@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
 
 	for (auto i = 0; i < file_names.size(); i++)
 	{
-		content = content_parser.parse(file_names[i], std::locale(), ' ', 2);
+		content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
 		all_content[file_names[i]] = content;
 	}
 	
@@ -485,14 +485,14 @@ int main(int argc, char *argv[])
 	index = 0;
 	for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
 	{ 
-		std::cout << i->first << " : " << std::endl;
-		
-		std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			std::cout << "    " << k << std::endl;
-		}
-		std::cout << "]" << std::endl;
+		//std::cout << i->first << " : " << std::endl;
+		//
+		//std::cout << "[ " << std::endl;
+		//for (auto k : i->second)
+		//{
+		//	std::cout << "    " << k << std::endl;
+		//}
+		//std::cout << "]" << std::endl;
 
 		// select only news
 		if (i->first)
@@ -530,17 +530,19 @@ int main(int argc, char *argv[])
 	
     auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
 	
+	std::unordered_map<std::string, std::string> articles_by_category;
 	index = 0;
 	for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 	{ 
-		std::cout << i->first << " : " << std::endl;
+		//std::cout << i->first << " : " << std::endl;
 		
-		std::cout << "[ " << std::endl;
+		//std::cout << "[ " << std::endl;
 		for (auto k : i->second)
 		{
-			std::cout << "    " << k << std::endl;
+			articles_by_category[k] = i->first;
+			//std::cout << "    " << k << std::endl;
 		}
-		std::cout << "]" << std::endl;
+		//std::cout << "]" << std::endl;
 
 		//index++;
 		//if (index % 1000 == 0)
@@ -573,14 +575,14 @@ int main(int argc, char *argv[])
 	index = 0;
 	for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
 	{ 
-		std::cout << i->first << " : " << std::endl;
+		//std::cout << title_articles[i->first] << " : " << std::endl;
 		
-		std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			std::cout << "    " << k << std::endl;
-		}
-		std::cout << "]" << std::endl;
+		//std::cout << "[ " << std::endl;
+		//for (auto k : i->second)
+		//{
+		//	std::cout << "    " << k << std::endl;
+		//}
+		//std::cout << "]" << std::endl;
 
 		//index++;
 		//if (index % 1000 == 0)
@@ -604,20 +606,43 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 	   	 
-	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales);
+	std::vector<int> today = {1, 11, 2019};
+	auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales, today);
 	
-    auto ranged_articles = news_ranger.arrange(selected_language_articles, selected_news_content); 
+    auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
+	std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::vector<std::string>>>> ranged_articles_by_categories;
 	
 	index = 0;
-	for (auto i = ranged_articles.begin(); i != ranged_articles.end(); i++) { 
+	
+	for (auto thread : ranged_articles)
+	{
+		for (auto i = thread.begin(); i != thread.end(); i++)
+		{
+			ranged_articles_by_categories["any"].push_back(thread);
+			ranged_articles_by_categories[articles_by_category[i->first]].push_back(thread);
+		}
+	}
+	for (auto i = ranged_articles_by_categories.begin(); i != ranged_articles_by_categories.end(); i++) 
+	{ 
 		std::cout << i->first << " : ";
 		
-		std::cout << "{ ";
+		std::cout << "[ " << std::endl;
 		for (auto k : i->second)
 		{
-			std::cout << k << " ";
+			std::cout << "    { " << std::endl;
+			for (auto l = k.begin(); l != k.end(); l++)
+			{
+				std::cout << "        " << title_articles[l->first] << ": " << std::endl;
+				std::cout << "        [ " << std::endl;
+				for (auto p : l->second)
+				{
+					std::cout << "            " << p << std::endl;
+				}
+				std::cout << "        ]" << std::endl;
+			}
+			std::cout << "    }" << std::endl;
 		}
-		std::cout << "}" << std::endl;
+		std::cout << "]" << std::endl;
 
 		//index++;
 		//if (index % 1000 == 0)

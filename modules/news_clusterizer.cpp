@@ -28,7 +28,7 @@ namespace news_clustering {
 
 
 	template <typename T>
-	std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+	std::vector<size_t> NewsClusterizer::sort_indexes(const std::vector<T> &v) {
 
 	  // initialize original index locations
 	  std::vector<size_t> idx(v.size());
@@ -141,7 +141,7 @@ namespace news_clustering {
 		auto cosineDistance = metric::Cosine<float>();
 		for (auto k = clustered_by_filename.begin(); k != clustered_by_filename.end(); k++)
 		{
-			std::cout << k->first << ": " << std::endl;
+			//std::cout << k->first << ": " << std::endl;
 			
 			// splitted title
 			content = content_parser.split_string(titles[k->first]);   
@@ -164,12 +164,12 @@ namespace news_clustering {
 				for (auto j : sorted_indexes)
 				{
 					//std::cout << "    " << text_distances[j] << ": " << titles[k->second[j]] << " " << k->second[j] << std::endl;
-					result[titles[k->first]].push_back(k->second[j]);
+					result[k->first].push_back(k->second[j]);
 				}
 			}
 			else
 			{
-				result[titles[k->first]].push_back(k->second[0]);
+				result[k->first].push_back(k->second[0]);
 			}
 		}
 		

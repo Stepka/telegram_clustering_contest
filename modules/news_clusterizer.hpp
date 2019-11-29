@@ -46,6 +46,10 @@ namespace news_clustering {
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
 		std::unordered_map<news_clustering::Language, TextEmbedder>& text_embedders_;
 		std::unordered_map<news_clustering::Language, Word2Vec>& word2vec_embedders_;
+
+		
+		template <typename T>
+		std::vector<size_t> sort_indexes(const std::vector<T> &v);
 	};
 
 }  // namespace news_clustering
