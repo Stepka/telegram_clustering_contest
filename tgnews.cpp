@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
 
 	/// Language detection
 
-	if (mode == LANGUAGES_MODE)
+	if (mode == LANGUAGES_MODE || mode == NEWS_MODE)
 	{
 		std::cerr << "Language detection..." << std::endl;
 
@@ -360,6 +360,7 @@ int main(int argc, char *argv[])
 
 		auto all_articles = language_detector.detect_language(all_content);
 		
+		result.clear();
 		index = 0;
 		for (auto i = all_articles.begin(); i != all_articles.end(); i++)
 		{		
@@ -389,144 +390,156 @@ int main(int argc, char *argv[])
 			//}
 		}
 
-		std::cout << result.dump(4) << std::endl;
-
 		t2 = std::chrono::steady_clock::now();
 		std::cerr << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 		std::cerr << std::endl;
-
 		
 		if (mode == LANGUAGES_MODE)
 		{
+			std::cout << result.dump(4) << std::endl;
 			return 0;
 		}
 	}
 	
 
 	/// Name Entities recognition
-	
-	std::cerr << "Name Entities recognition..." << std::endl;  
+
+	std::cerr << "Name Entities recognition..." << std::endl;
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 
 	auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
-    auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content); 
-	
-	for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
-	{
-		std::cout << i->first << " : " << std::endl;
-		
-		std::cout << "[ " << std::endl;
-		for (auto k : i->second)
-		{
-			std::cout << "    " << k << std::endl;
-		}
-		std::cout << "]" << std::endl;
-	}
+	auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
+
+	//for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
+	//{
+	//	std::cout << i->first << " : " << std::endl;
+
+	//	std::cout << "[ " << std::endl;
+	//	for (auto k : i->second)
+	//	{
+	//		std::cout << "    " << k << std::endl;
+	//	}
+	//	std::cout << "]" << std::endl;
+	//}
 
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
-	
+	std::cerr << std::endl;
+
 
 	/// Titles extracting
-	
-	std::cerr << "Titles extracting..." << std::endl;  
+
+	std::cerr << "Titles extracting..." << std::endl;
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 
 	auto title_extractor = news_clustering::TitleExtractor(language_boost_locales);
-    auto title_articles = title_extractor.find_titles(selected_language_articles); 
-	
-	for (auto i = title_articles.begin(); i != title_articles.end(); i++)
-	{
-		std::cout << i->first << " : " << i->second << std::endl;
-	}
+	auto title_articles = title_extractor.find_titles(selected_language_articles);
+
+	//for (auto i = title_articles.begin(); i != title_articles.end(); i++)
+	//{
+	//	std::cout << i->first << " : " << i->second << std::endl;
+	//}
 
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Titles extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
-	
+	std::cerr << std::endl;
+
 
 	/// Dates extracting
-	
-	std::cerr << "Dates extracting..." << std::endl;  
+
+	std::cerr << "Dates extracting..." << std::endl;
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 
 	auto dates_extractor = news_clustering::DatesExtractor(languages, language_boost_locales, day_names_path, month_names_path, 2019);
-    auto found_dates = dates_extractor.find_dates(selected_language_articles, selected_language_content); 
-	
-	for (auto i = found_dates.begin(); i != found_dates.end(); i++)
-	{
-		std::cout << i->first << " : " << std::endl;
-		
-		std::cout << "[ ";
-		for (auto k = 0; k < i->second.size(); k++)
-		{
-			for (auto d = 0; d < i->second[k].size() - 1; d++)
-			{
-				std::cout << i->second[k][d] << ".";
-			}
-			std::cout << i->second[k][i->second[k].size() - 1] << ", ";
-		}
-		std::cout << "]" << std::endl;
-	}
+	auto found_dates = dates_extractor.find_dates(selected_language_articles, selected_language_content);
+
+	//for (auto i = found_dates.begin(); i != found_dates.end(); i++)
+	//{
+	//	std::cout << i->first << " : " << std::endl;
+
+	//	std::cout << "[ ";
+	//	for (auto k = 0; k < i->second.size(); k++)
+	//	{
+	//		for (auto d = 0; d < i->second[k].size() - 1; d++)
+	//		{
+	//			std::cout << i->second[k][d] << ".";
+	//		}
+	//		std::cout << i->second[k][i->second[k].size() - 1] << ", ";
+	//	}
+	//	std::cout << "]" << std::endl;
+	//}
 
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Dates extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
+	std::cerr << std::endl;
 
 
 	/// News detection
 	
-	std::cerr << "News detection..." << std::endl;  
+	if (mode == NEWS_MODE)
+	{	
+		std::cerr << "News detection..." << std::endl;  
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 	
-	auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales);
+		auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales);
 	
-    auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
+		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
+	
+		result.clear();
+		result = {		
+			{"articles", std::vector<std::string>()}
+		};
+		index = 0;
+		for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
+		{ 
+			//std::cout << i->first << " : " << std::endl;
+			//
+			//std::cout << "[ " << std::endl;
+			//for (auto k : i->second)
+			//{
+			//	std::cout << "    " << k << std::endl;
+			//}
+			//std::cout << "]" << std::endl;
 
-	index = 0;
-	for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
-	{ 
-		//std::cout << i->first << " : " << std::endl;
-		//
-		//std::cout << "[ " << std::endl;
-		//for (auto k : i->second)
-		//{
-		//	std::cout << "    " << k << std::endl;
-		//}
-		//std::cout << "]" << std::endl;
-
-		// select only news
-		if (i->first)
-		{
-			for (auto k : i->second)
+			// select only news
+			if (i->first)
 			{
-				selected_news_articles[k] = selected_language_articles[k];
-				selected_news_content[k] = all_content[k];
+				for (auto k : i->second)
+				{
+					selected_news_articles[k] = selected_language_articles[k];
+					selected_news_content[k] = all_content[k];
+					result["articles"].push_back(k);
+				}
 			}
+
+			//index++;
+			//if (index % 1000 == 0)
+			//{
+			//	t2 = std::chrono::steady_clock::now();
+			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			//	std::cout << std::endl;  
+			//	t1 = std::chrono::steady_clock::now();
+			//}
 		}
 
-		//index++;
-		//if (index % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	std::cout << std::endl;  
-		//	t1 = std::chrono::steady_clock::now();
-		//}
-	}
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "News detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;  
 
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "News detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
+		if (mode == NEWS_MODE)
+		{
+			std::cout << result.dump(4) << std::endl;
+			return 0;
+		}
+	}
 
 
 	/// Categorization
