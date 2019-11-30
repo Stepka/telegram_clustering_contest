@@ -42,11 +42,15 @@ namespace news_clustering {
 			content = contents[i->first]; 
 			file_dates = dates[i->first]; 
 			
+			//std::cout << i->first << ": " << std::endl;
 			//for (auto date : file_dates)
 			//{
 			//	file_dates_for_entropy.push_back({(double) date[0] + date[1] * 30.0 + date[2] * 365.0});
-			//}			
+			//	std::cout << date[0] << "-" << date[1] << "-" << date[2] << " ";
+			//}
+			//
 			//auto e = metric::entropy(file_dates_for_entropy, 2, 2.0, metric::Euclidian<double>());
+			//std::cout << "entropy: " << e << std::endl;
 
 			result[file_dates.size() > 0].push_back(i->first);
 		}
