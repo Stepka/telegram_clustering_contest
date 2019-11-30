@@ -82,7 +82,7 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::vector<int>> DatesExtractor::find_date(
+		std::vector<std::vector<int>> find_date(
 			std::vector<std::string>& content,
 			const Language& language
 		);
