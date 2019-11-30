@@ -24,6 +24,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include <boost/algorithm/string.hpp>
 #include <boost/locale.hpp>
 
@@ -611,7 +612,9 @@ int main(int argc, char *argv[])
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
 	   	 
-		std::vector<int> today = {1, 11, 2019};
+		std::time_t t = std::time(0);   // get time now
+		std::tm* now = std::localtime(&t);
+		std::vector<int> today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
 		auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales, today);
 	
 		auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
@@ -677,7 +680,7 @@ int main(int argc, char *argv[])
 	}
 	
 	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Total time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - total_start_time).count()) / 1000000 << " s)" << std::endl;
+	std::cerr << "Total time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - total_start_time).count()) / 1000000 << " s" << std::endl;
 
     return 0;
 }
