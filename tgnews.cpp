@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
 	std::cerr << "tgnews have started" << std::endl;  
 	std::cerr << std::endl;  
 	
+	auto total_start_time = std::chrono::steady_clock::now();
 	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
 	auto t2 = std::chrono::steady_clock::now();	
@@ -396,7 +397,6 @@ int main(int argc, char *argv[])
 		if (mode == LANGUAGES_MODE)
 		{
 			std::cout << result.dump(4) << std::endl;
-			return 0;
 		}
 	}
 	
@@ -517,7 +517,6 @@ int main(int argc, char *argv[])
 		if (mode == NEWS_MODE)
 		{
 			std::cout << result.dump(4) << std::endl;
-			return 0;
 		}
 	}
 
@@ -558,7 +557,6 @@ int main(int argc, char *argv[])
 		if (mode == CATEGORIES_MODE)
 		{
 			std::cout << result.dump(4) << std::endl;
-			return 0;
 		}
 	}
 
@@ -600,7 +598,6 @@ int main(int argc, char *argv[])
 		if (mode == THREAD_MODE)
 		{
 			std::cout << result.dump(4) << std::endl;
-			return 0;
 		}
 	}
 
@@ -676,9 +673,11 @@ int main(int argc, char *argv[])
 		if (mode == TOP_MODE)
 		{
 			std::cout << result.dump(4) << std::endl;
-			return 0;
 		}
 	}
+	
+	t2 = std::chrono::steady_clock::now();
+	std::cerr << "Total time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - total_start_time).count()) / 1000000 << " s)" << std::endl;
 
     return 0;
 }
