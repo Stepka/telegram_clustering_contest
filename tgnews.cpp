@@ -253,7 +253,14 @@ int main(int argc, char *argv[])
 	for (auto i = 0; i < file_names.size(); i++)
 	{
 		content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
-		all_content[file_names[i]] = content;
+		all_content[file_names[i]] = content;	
+
+		if ((i + 1) % 1000 == 0)
+		{
+			t2 = std::chrono::steady_clock::now();
+			std::cerr << "progress: " << (i + 1) << " from " << file_names.size() << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+			t1 = std::chrono::steady_clock::now();
+		}
 	}
 	
 
@@ -273,7 +280,6 @@ int main(int argc, char *argv[])
 
 	//
 	
-	int index = 0;
 	json result;
 
 
@@ -364,7 +370,6 @@ int main(int argc, char *argv[])
 		auto all_articles = language_detector.detect_language(all_content);
 		
 		result = json();
-		index = 0;
 		for (auto i = all_articles.begin(); i != all_articles.end(); i++)
 		{		
 			// select only known languages
@@ -382,14 +387,6 @@ int main(int argc, char *argv[])
 				}
 				result.push_back(lang_item);
 			}			
-
-			//if (i % 1000 == 0)
-			//{
-			//	t2 = std::chrono::steady_clock::now();
-			//	std::cout << i << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			//	std::cout << std::endl;  
-			//	t1 = std::chrono::steady_clock::now();
-			//}
 		}
 
 		t2 = std::chrono::steady_clock::now();
@@ -499,7 +496,6 @@ int main(int argc, char *argv[])
 		result = {		
 			{"articles", std::vector<std::string>()}
 		};
-		index = 0;
 		for (auto i = news_articles.begin(); i != news_articles.end(); i++) 
 		{ 
 			// select only news
@@ -511,16 +507,7 @@ int main(int argc, char *argv[])
 					selected_news_content[k] = all_content[k];
 					result["articles"].push_back(k);
 				}
-			}
-
-			//index++;
-			//if (index % 1000 == 0)
-			//{
-			//	t2 = std::chrono::steady_clock::now();
-			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			//	std::cout << std::endl;  
-			//	t1 = std::chrono::steady_clock::now();
-			//}
+			}		
 		}
 
 		t2 = std::chrono::steady_clock::now();
@@ -550,7 +537,6 @@ int main(int argc, char *argv[])
 		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
 	
 		result = json();
-		index = 0;
 		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 		{ 
 			json category_item = {
@@ -563,15 +549,6 @@ int main(int argc, char *argv[])
 				category_item["articles"].push_back(k);
 			}
 			result.push_back(category_item);
-
-			//index++;
-			//if (index % 1000 == 0)
-			//{
-			//	t2 = std::chrono::steady_clock::now();
-			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			//	std::cout << std::endl;  
-			//	t1 = std::chrono::steady_clock::now();
-			//}
 		}
 
 		t2 = std::chrono::steady_clock::now();
@@ -603,7 +580,6 @@ int main(int argc, char *argv[])
 		clustered_articles = news_clusterizer.clusterize(selected_news_articles, selected_news_content, title_articles, eps, minpts); 
 	
 		result = json();
-		index = 0;
 		for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
 		{ 
 			json thread_item = {
@@ -615,15 +591,6 @@ int main(int argc, char *argv[])
 				thread_item["articles"].push_back(k);
 			}
 			result.push_back(thread_item);
-
-			//index++;
-			//if (index % 1000 == 0)
-			//{
-			//	t2 = std::chrono::steady_clock::now();
-			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			//	std::cout << std::endl;  
-			//	t1 = std::chrono::steady_clock::now();
-			//}
 		}
 
 		t2 = std::chrono::steady_clock::now();
@@ -654,7 +621,6 @@ int main(int argc, char *argv[])
 		std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::vector<std::string>>>> ranged_articles_by_categories;
 	
 		result = json();
-		index = 0;	
 		for (auto thread : ranged_articles)
 		{
 			for (auto i = thread.begin(); i != thread.end(); i++)
@@ -701,15 +667,6 @@ int main(int argc, char *argv[])
 				}
 			}
 			result.push_back(top_item);
-
-			//index++;
-			//if (index % 1000 == 0)
-			//{
-			//	t2 = std::chrono::steady_clock::now();
-			//	std::cout << index << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			//	std::cout << std::endl;  
-			//	t1 = std::chrono::steady_clock::now();
-			//}
 		}
 
 		t2 = std::chrono::steady_clock::now();
