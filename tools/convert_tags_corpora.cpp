@@ -22,6 +22,10 @@ int main(int argc, char *argv[])
     // Create system default locale
     boost::locale::generator gen;
 	
+	#if defined(__linux__)
+		std::locale ru_boost_locale = gen("ru_RU.UTF-8");
+	#endif
+
 	#if defined(_WIN64)
 		std::locale ru_boost_locale = gen("russian_russia.65001");
 		std::locale ru_locale("russian_russia.65001");

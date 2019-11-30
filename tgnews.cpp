@@ -168,8 +168,8 @@ int main(int argc, char *argv[])
     // Create system default locale
     boost::locale::generator gen;
 	#if defined(__linux__)
-		std::locale ru_locale = gen("ru_RU.UTF-8");
-		std::locale en_locale = gen("ru_RU.UTF-8");
+		std::locale ru_boost_locale = gen("ru_RU.UTF-8");
+		std::locale en_boost_locale = gen("en_US.UTF-8");
 	#endif
 	
 	#if defined(_WIN64)
