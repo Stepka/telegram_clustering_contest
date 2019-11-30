@@ -40,7 +40,7 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		Language detect_language_by_single_content(std::vector<std::string> content, size_t num_language_samples, double language_score_min_level);
+		Language detect_language_by_single_content(std::vector<std::string>& content, size_t num_language_samples, double language_score_min_level);
 		
 		/**
 		 * @brief 

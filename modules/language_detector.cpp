@@ -50,7 +50,7 @@ namespace news_clustering {
 	}
 
 
-	Language LanguageDetector::detect_language_by_single_content(std::vector<std::string> content, size_t num_language_samples, double language_score_min_level)
+	Language LanguageDetector::detect_language_by_single_content(std::vector<std::string>& content, size_t num_language_samples, double language_score_min_level)
 	{		
 		// Random sampleing 
 		std::vector<size_t> randomized_samples(content.size());

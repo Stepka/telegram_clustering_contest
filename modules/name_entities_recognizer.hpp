@@ -77,6 +77,15 @@ namespace news_clustering {
 			std::unordered_map<std::string, news_clustering::Language>& file_names, 
 			std::unordered_map<std::string, std::vector<std::string>>& contents
 		);
+		
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::vector<int>> DatesExtractor::find_date(
+			std::vector<std::string>& content,
+			const Language& language
+		);
 			
 		/**
 		 * @brief 

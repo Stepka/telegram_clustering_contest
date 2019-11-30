@@ -124,6 +124,49 @@ namespace news_clustering {
 	};
 
 	
+	std::vector<std::vector<int>> DatesExtractor::find_date(
+		std::vector<std::string>& content,
+		const Language& language
+	)
+	{
+		std::vector<std::vector<int>> dates;		
+		std::vector<int> date;
+
+		auto day_names = day_names_[language];
+		auto month_names = month_names_[language];
+		auto locale = locales_[language];
+
+		for (auto i = 0; i < content.size(); i++)
+		{
+			if (month_names.find(boost::locale::to_lower(content[i], locale)) != month_names.end())
+			{
+				date.clear();
+
+				if (i > 0 && i < content.size() - 1)
+				{
+					date = check_if_date(content[i - 1], content[i], content[i + 1], language);
+				}
+				else if (i == 0)
+				{
+					date = check_if_date("", content[i], content[i + 1], language);
+				}
+				else if (i == content.size() - 1)
+				{
+					date = check_if_date(content[i - 1], content[i], "", language);
+				}
+
+				if (date.size() == 3)
+				{
+					dates.push_back(date);
+					i += 2;
+				}
+			}
+		}
+
+		return dates;
+	}
+
+	
 	std::unordered_map<std::string, std::vector<std::vector<int>>> DatesExtractor::find_dates(
 		std::unordered_map<std::string, news_clustering::Language>& file_names, 
 		std::unordered_map<std::string, std::vector<std::string>>& contents
@@ -132,12 +175,6 @@ namespace news_clustering {
 		std::unordered_map<std::string, std::vector<std::vector<int>>> result;
 		
 		std::vector<std::string> content;
-		std::vector<std::vector<int>> dates;		
-		std::vector<int> date;
-
-		Vocab day_names;
-		Vocab month_names;
-		std::locale locale;
 		Language language;
 		
 		for (auto f = file_names.begin(); f != file_names.end(); f++)
@@ -145,40 +182,7 @@ namespace news_clustering {
 			content = contents[f->first];
 			language = f->second;
 
-			day_names = day_names_[language];
-			month_names = month_names_[language];
-			locale = locales_[language];
-
-			for (auto i = 0; i < content.size(); i++)
-			{
-				if (month_names.find(boost::locale::to_lower(content[i], locale)) != month_names.end())
-				{
-					date.clear();
-
-					if (i > 0 && i < content.size() - 1)
-					{
-						date = check_if_date(content[i - 1], content[i], content[i + 1], language);
-					}
-					else if (i == 0)
-					{
-						date = check_if_date("", content[i], content[i + 1], language);
-					}
-					else if (i == content.size() - 1)
-					{
-						date = check_if_date(content[i - 1], content[i], "", language);
-					}
-
-					if (date.size() == 3)
-					{
-						dates.push_back(date);
-						i += 2;
-					}
-				}
-			}
-
-			result[f->first] = dates;
-			dates.clear();
-			date.clear();
+			result[f->first] = find_date(content, language);
 		}
 
 		return result;

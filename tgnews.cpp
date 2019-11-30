@@ -235,61 +235,19 @@ int main(int argc, char *argv[])
 	}
 
 	std::cerr << std::endl;  
-
-
-	/// Load data
-
-	std::cerr << "Data loading..." << std::endl;  
-
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
-
-	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
-	std::cout << "Num cores: " << concurentThreadsSupported << std::endl;
-	ThreadPool pool(concurentThreadsSupported);
-	Semaphore sem;
-	std::mutex mutex_;
-
-
-	auto file_names = selectHtmlFiles(data_path);
-	std::cerr << "Num files: " << file_names.size() << std::endl;  
-
 	
-	auto content_parser = news_clustering::ContentParser();
+
+	/// variables	
+	
+	json result;
+	news_clustering::Language language;
 	
 	std::unordered_map<std::string, std::vector<std::string>> all_content;	
-	std::vector<std::string> content;
 
-	for (auto i = 0; i < file_names.size(); i++)
-	{
-		pool.execute(
-			[i, &sem, &content_parser, &all_content, &file_names, &mutex_]()
-			{			
-				auto content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
-
-				mutex_.lock();
-				all_content[file_names[i]] = content;
-				mutex_.unlock();
-
-				sem.notify();
-			}
-		);
-
-		//if ((i + 1) % 1000 == 0)
-		//{
-		//	t2 = std::chrono::steady_clock::now();
-		//	std::cerr << "progress: " << (i + 1) << " from " << file_names.size() << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-		//	t1 = std::chrono::steady_clock::now();
-		//}
-	}
+	std::unordered_map<std::string, std::vector<std::string>> ner_articles;
+	std::unordered_map<std::string, std::string> title_articles;
+	std::unordered_map<std::string, std::vector<std::vector<int>>> found_dates;
 	
-	for (auto i = 0; i < file_names.size(); i++)
-	{
-		sem.wait();
-	}
-	pool.close();
-	
-
     std::unordered_map<std::string, news_clustering::Language> selected_language_articles; 
     std::unordered_map<std::string, std::vector<std::string>> selected_language_content; 
 	
@@ -300,13 +258,55 @@ int main(int argc, char *argv[])
 
 	std::unordered_map<std::string, std::vector<std::string>> clustered_articles;
 
+
+	/// Load data
+
+	std::cerr << "Data loading..." << std::endl;  
+
+	t0 = std::chrono::steady_clock::now();
+	t1 = std::chrono::steady_clock::now();
+	
+	std::time_t t = std::time(0);   // get time now
+	std::tm* now = std::localtime(&t);
+	std::vector<int> today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+
+	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
+	std::cout << "Num cores: " << concurentThreadsSupported << std::endl;
+	std::mutex mutex_;
+
+
+	auto file_names = selectHtmlFiles(data_path);
+	std::cerr << "Num files: " << file_names.size() << std::endl;  
+
+	
+	auto content_parser = news_clustering::ContentParser();
+	
+	Semaphore sem_1;
+	ThreadPool pool_1(concurentThreadsSupported);
+	for (auto i = 0; i < file_names.size(); i++)
+	{
+		pool_1.execute(
+			[i, &sem_1, &content_parser, &all_content, &file_names, &mutex_]()
+			{			
+				auto content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
+
+				mutex_.lock();
+				all_content[file_names[i]] = content;
+				mutex_.unlock();
+
+				sem_1.notify();
+			}
+		);
+	}	
+	for (auto i = 0; i < file_names.size(); i++)
+	{
+		sem_1.wait();
+	}
+	pool_1.close();
+
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
 	std::cerr << std::endl;  
-
-	//
-	
-	json result;
 
 
 	/// Data and vocabs prepare
@@ -393,13 +393,40 @@ int main(int argc, char *argv[])
 
 		auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
 		
-		/// Language consts
+		// Language consts
 		size_t num_language_samples = 300;
 		double language_score_min_level = 0.1;
-		auto all_articles = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);
 		
+		auto found_languages = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);	
+		//Semaphore sem_2;
+		//ThreadPool pool_2(concurentThreadsSupported);
+		//std::unordered_map<news_clustering::Language, std::vector<std::string>> found_languages;		
+		//for (auto c = all_content.begin(); c != all_content.end(); c++)
+		//{
+		//	auto file_name = c->first;
+		//	auto content = c->second;
+		//	pool_2.execute(
+		//		[&file_name, &content, &sem_2, &language_detector, &found_languages, &mutex_, num_language_samples, language_score_min_level]()
+		//		{
+		//			//auto language = language_detector.detect_language_by_single_content(content, num_language_samples, language_score_min_level);
+
+		//			mutex_.lock();
+		//			found_languages[language].push_back(file_name);
+		//			mutex_.unlock();
+
+		//			sem_2.notify();
+		//		}
+		//	);
+		//}		
+		//for (auto c = all_content.begin(); c != all_content.end(); c++)
+		//{
+		//	sem_2.wait();
+		//}
+		//pool_2.close();
+
+		// Prepare result
 		result = json();
-		for (auto i = all_articles.begin(); i != all_articles.end(); i++)
+		for (auto i = found_languages.begin(); i != found_languages.end(); i++)
 		{		
 			// select only known languages
 			if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
@@ -431,81 +458,77 @@ int main(int argc, char *argv[])
 
 	/// Name Entities recognition
 
-	std::cerr << "Name Entities recognition..." << std::endl;
+	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
+	{
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		std::cerr << "Name Entities recognition..." << std::endl;
 
-	//auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
-	//auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
-	std::unordered_map<std::string, std::vector<std::string>> ner_articles;
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 
-	//for (auto i = ner_articles.begin(); i != ner_articles.end(); i++)
-	//{
-	//	std::cout << i->first << " : " << std::endl;
+		//auto ner = news_clustering::NER(languages, text_embedders, language_boost_locales);
+		//auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
 
-	//	std::cout << "[ " << std::endl;
-	//	for (auto k : i->second)
-	//	{
-	//		std::cout << "    " << k << std::endl;
-	//	}
-	//	std::cout << "]" << std::endl;
-	//}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;
 
 
-	/// Titles extracting
+		/// Titles extracting
 
-	std::cerr << "Titles extracting..." << std::endl;
+		std::cerr << "Titles extracting..." << std::endl;
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 
-	auto title_extractor = news_clustering::TitleExtractor(language_boost_locales);
-	auto title_articles = title_extractor.find_titles(selected_language_articles);
+		auto title_extractor = news_clustering::TitleExtractor(language_boost_locales);
+		title_articles = title_extractor.find_titles(selected_language_articles);
 
-	//for (auto i = title_articles.begin(); i != title_articles.end(); i++)
-	//{
-	//	std::cout << i->first << " : " << i->second << std::endl;
-	//}
-
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Titles extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Titles extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;
 
 
-	/// Dates extracting
+		/// Dates extracting
 
-	std::cerr << "Dates extracting..." << std::endl;
+		std::cerr << "Dates extracting..." << std::endl;
 
-	t0 = std::chrono::steady_clock::now();
-	t1 = std::chrono::steady_clock::now();
+		t0 = std::chrono::steady_clock::now();
+		t1 = std::chrono::steady_clock::now();
 
-	auto dates_extractor = news_clustering::DatesExtractor(languages, language_boost_locales, day_names_path, month_names_path, 2019);
-	auto found_dates = dates_extractor.find_dates(selected_language_articles, selected_language_content);
+		auto dates_extractor = news_clustering::DatesExtractor(languages, language_boost_locales, day_names_path, month_names_path, today[2]);
+		
+		found_dates = dates_extractor.find_dates(selected_language_articles, selected_language_content);
+		//Semaphore sem_3;
+		//ThreadPool pool_3(concurentThreadsSupported);
+		//for (auto c = selected_language_content.begin(); c != selected_language_content.end(); c++)
+		//{
+		//	auto file_name = c->first;
+		//	auto content = c->second;
+		//	auto language = selected_language_articles[file_name];
+		//	pool_3.execute(
+		//		[&file_name, &content, &sem_3, &dates_extractor, &found_dates, &mutex_, &language]()
+		//	{
+		//		auto dates = dates_extractor.find_date(content, language);
 
-	//for (auto i = found_dates.begin(); i != found_dates.end(); i++)
-	//{
-	//	std::cout << i->first << " : " << std::endl;
+		//		mutex_.lock();
+		//		found_dates[file_name] = dates;
+		//		mutex_.unlock();
 
-	//	std::cout << "[ ";
-	//	for (auto k = 0; k < i->second.size(); k++)
-	//	{
-	//		for (auto d = 0; d < i->second[k].size() - 1; d++)
-	//		{
-	//			std::cout << i->second[k][d] << ".";
-	//		}
-	//		std::cout << i->second[k][i->second[k].size() - 1] << ", ";
-	//	}
-	//	std::cout << "]" << std::endl;
-	//}
+		//		sem_3.notify();
+		//	}
+		//	);
+		//}
+		//for (auto c = selected_language_content.begin(); c != selected_language_content.end(); c++)
+		//{
+		//	sem_3.wait();
+		//}
+		//pool_3.close();
 
-	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Dates extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;
+		t2 = std::chrono::steady_clock::now();
+		std::cerr << "Dates extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		std::cerr << std::endl;
+	}
 
 
 	/// News detection
@@ -521,6 +544,7 @@ int main(int argc, char *argv[])
 	
 		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
 	
+		// Prepare result
 		result = {		
 			{"articles", std::vector<std::string>()}
 		};
@@ -658,9 +682,6 @@ int main(int argc, char *argv[])
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
 	   	 
-		std::time_t t = std::time(0);   // get time now
-		std::tm* now = std::localtime(&t);
-		std::vector<int> today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
 		auto news_ranger = news_clustering::NewsRanger(languages, text_embedders, language_boost_locales, today);
 	
 		auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
