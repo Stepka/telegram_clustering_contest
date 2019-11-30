@@ -71,7 +71,7 @@ namespace news_clustering {
 			}
 
 			
-			for (auto n : ngrams)
+			for (const auto& n : ngrams)
 			{
 				for (auto i = 0; i < n.size() - 1; i++)
 				{
