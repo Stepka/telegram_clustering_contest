@@ -107,7 +107,7 @@ namespace news_clustering {
 		
 		TitleExtractor() = default;
 
-		TitleExtractor::TitleExtractor(std::unordered_map<Language, std::locale>& locales);
+		TitleExtractor(std::unordered_map<Language, std::locale>& locales);
 
 		/**
 		 * @brief 
