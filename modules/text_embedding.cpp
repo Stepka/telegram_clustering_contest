@@ -15,7 +15,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 namespace news_clustering {
 
-	TextEmbedder::TextEmbedder(const std::string path, Lemmatizer lemmatizer, Language language) : language_(language), lemmatizer_(lemmatizer)
+	TextEmbedder::TextEmbedder(const std::string& path, const Lemmatizer& lemmatizer, const Language& language) : language_(language), lemmatizer_(lemmatizer)
 	{		
 		std::string string_for_read;
 		long long original_vocab_size, cluster_id;
@@ -38,7 +38,7 @@ namespace news_clustering {
 		file_reader.close();
 	}
 
-	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, std::locale locale)
+	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, const std::locale& locale)
 	{
 		std::vector<int> result(num_clusters, 0);
 		std::string word_lower;
@@ -57,7 +57,7 @@ namespace news_clustering {
 	}
 
 	
-	bool TextEmbedder::is_exist_in_vocab(const std::string word, std::locale locale)
+	bool TextEmbedder::is_exist_in_vocab(const std::string& word, const std::locale& locale)
 	{
 		auto word_lower = boost::locale::to_lower(word, locale);
 		word_lower = lemmatizer_(word_lower);
@@ -66,7 +66,7 @@ namespace news_clustering {
 
 	//
 
-	Word2Vec::Word2Vec(const std::string path, Lemmatizer lemmatizer, Language language) : language_(language), lemmatizer_(lemmatizer)
+	Word2Vec::Word2Vec(const std::string& path, const Lemmatizer& lemmatizer, const Language& language) : language_(language), lemmatizer_(lemmatizer)
 	{		
 		std::string string_for_read;
 		float value;
@@ -94,7 +94,7 @@ namespace news_clustering {
 		file_reader.close();
 	}
 
-	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale, float num_closest_distances)
+	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, const std::locale& locale, float num_closest_distances)
 	{
 		std::vector<float> result;
 		std::vector<float> distances;
@@ -158,7 +158,7 @@ namespace news_clustering {
 
 	//
 
-	Lemmatizer::Lemmatizer(const std::string path, Language language, std::string default_suffix) : language_(language), default_suffix_(default_suffix)
+	Lemmatizer::Lemmatizer(const std::string& path, const Language& language, const std::string& default_suffix) : language_(language), default_suffix_(default_suffix)
 	{		
 		std::string string_for_read, word, p_o_s, lemma = "";
 		std::stringstream string_for_read_stream;
@@ -199,7 +199,7 @@ namespace news_clustering {
 		file_reader.close();
 	}
 
-	std::string Lemmatizer::operator()(const std::string word)
+	std::string Lemmatizer::operator()(const std::string& word)
 	{
 		if (vocab.find(word) != vocab.end())
 		{

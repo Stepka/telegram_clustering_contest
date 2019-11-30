@@ -16,7 +16,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 namespace news_clustering {
 	
-	std::vector<std::string> ContentParser::parse(std::string filename, std::locale locale, char delimeter, int min_word_size)
+	std::vector<std::string> ContentParser::parse(const std::string& filename, const std::locale& locale, char delimeter, int min_word_size)
 	{
 		std::vector<std::string> words, result;
 	
@@ -36,7 +36,7 @@ namespace news_clustering {
 		return result;
 	}
 	
-	std::vector<std::string> ContentParser::split_string(std::string line, char delimeter, int min_word_size)
+	std::vector<std::string> ContentParser::split_string(std::string& line, char delimeter, int min_word_size)
 	{
 		std::vector<std::string> words;
 	
@@ -69,7 +69,7 @@ namespace news_clustering {
 		return words;
 	}
 
-	std::unordered_map<std::string, std::string> ContentParser::read_simple_vocabulary(std::string filename, std::locale locale)
+	std::unordered_map<std::string, std::string> ContentParser::read_simple_vocabulary(const std::string& filename, const std::locale& locale)
 	{
 		std::unordered_map<std::string, std::string> words;
 		std::string word;
@@ -87,7 +87,7 @@ namespace news_clustering {
 		return words;
 	}
 
-	std::vector<std::string> ContentParser::parse_by_lines(std::string filename, std::locale locale)
+	std::vector<std::string> ContentParser::parse_by_lines(const std::string& filename, const std::locale& locale)
 	{
 		std::vector<std::string> lines;
 		std::string line;
@@ -105,7 +105,7 @@ namespace news_clustering {
 		return lines;
 	}
 
-	std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag)
+	std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(const std::string& filename, const std::locale& locale, int start_tag, int end_tag)
 	{
 		std::unordered_map<std::string, std::string> vocab = read_simple_vocabulary(filename, locale);
 		std::unordered_map<std::string, int> map; 

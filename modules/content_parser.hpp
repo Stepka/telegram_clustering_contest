@@ -26,31 +26,31 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::string> parse(std::string filename, std::locale locale, char delimeter = ' ', int min_word_size = 1);
+		std::vector<std::string> parse(const std::string& filename, const std::locale& locale, char delimeter = ' ', int min_word_size = 1);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::string> parse_by_lines(std::string filename, std::locale locale);
+		std::vector<std::string> parse_by_lines(const std::string& filename, const std::locale& locale);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, std::string> read_simple_vocabulary(std::string filename, std::locale locale);
+		std::unordered_map<std::string, std::string> read_simple_vocabulary(const std::string& filename, const std::locale& locale);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::unordered_map<std::string, int> read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag);
+		std::unordered_map<std::string, int> read_vocabulary_and_tag(const std::string& filename, const std::locale& locale, int start_tag, int end_tag);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::string> split_string(std::string line, char delimeter = ' ', int min_word_size = 1);
+		std::vector<std::string> split_string(std::string& line, char delimeter = ' ', int min_word_size = 1);
 	};
 
 }  // namespace news_clustering

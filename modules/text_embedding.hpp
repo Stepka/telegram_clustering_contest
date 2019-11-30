@@ -23,13 +23,13 @@ namespace news_clustering {
 		
 		Lemmatizer() = default;
 
-		explicit Lemmatizer(std::string path, Language language, std::string default_suffix = "");
+		explicit Lemmatizer(const std::string& path, const Language& language, const std::string& default_suffix = "");
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::string operator()(const std::string word);
+		std::string operator()(const std::string& word);
 		
 		
 		std::string default_suffix_ = "";
@@ -50,19 +50,19 @@ namespace news_clustering {
 		
 		TextEmbedder() = default;
 
-		explicit TextEmbedder(std::string path, Lemmatizer lemmatizer, Language language);
+		explicit TextEmbedder(const std::string& path, const Lemmatizer& lemmatizer, const Language& language);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<int> operator()(const std::vector<std::string>& words, std::locale locale);
+		std::vector<int> operator()(const std::vector<std::string>& words, const std::locale& locale);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		bool is_exist_in_vocab(const std::string word, std::locale locale);
+		bool is_exist_in_vocab(const std::string& word, const std::locale& locale);
 		
 
 		
@@ -87,13 +87,13 @@ namespace news_clustering {
 		
 		Word2Vec() = default;
 
-		explicit Word2Vec(std::string path, Lemmatizer lemmatizer, Language language);
+		explicit Word2Vec(const std::string& path, const Lemmatizer& lemmatizer, const Language& language);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale, float num_closest_distances = 5);
+		std::vector<float> texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, const std::locale& locale, float num_closest_distances = 5);
 		
 		
 

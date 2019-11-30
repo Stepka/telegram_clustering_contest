@@ -34,6 +34,8 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #include "modules/categories_detector.hpp"
 #include "modules/news_clusterizer.hpp"
 #include "modules/news_ranger.hpp"
+#include "metric/modules/utils/ThreadPool.cpp"
+#include "metric/modules/utils/Semaphore.h"
 
 #include "3rdparty/json.hpp"
 
@@ -242,6 +244,12 @@ int main(int argc, char *argv[])
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
 
+	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
+	std::cout << "Num cores: " << concurentThreadsSupported << std::endl;
+	ThreadPool pool(concurentThreadsSupported);
+	Semaphore sem;
+	std::mutex mutex_;
+
 
 	auto file_names = selectHtmlFiles(data_path);
 	std::cerr << "Num files: " << file_names.size() << std::endl;  
@@ -254,16 +262,32 @@ int main(int argc, char *argv[])
 
 	for (auto i = 0; i < file_names.size(); i++)
 	{
-		content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
-		all_content[file_names[i]] = content;	
+		pool.execute(
+			[i, &sem, &content_parser, &all_content, &file_names, &mutex_]()
+			{			
+				auto content = content_parser.parse(file_names[i], std::locale(), ' ', 1);
 
-		if ((i + 1) % 1000 == 0)
-		{
-			t2 = std::chrono::steady_clock::now();
-			std::cerr << "progress: " << (i + 1) << " from " << file_names.size() << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
-			t1 = std::chrono::steady_clock::now();
-		}
+				mutex_.lock();
+				all_content[file_names[i]] = content;
+				mutex_.unlock();
+
+				sem.notify();
+			}
+		);
+
+		//if ((i + 1) % 1000 == 0)
+		//{
+		//	t2 = std::chrono::steady_clock::now();
+		//	std::cerr << "progress: " << (i + 1) << " from " << file_names.size() << " (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1000000 << " s)" << std::endl;
+		//	t1 = std::chrono::steady_clock::now();
+		//}
 	}
+	
+	for (auto i = 0; i < file_names.size(); i++)
+	{
+		sem.wait();
+	}
+	pool.close();
 	
 
     std::unordered_map<std::string, news_clustering::Language> selected_language_articles; 
