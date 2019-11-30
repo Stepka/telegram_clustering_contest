@@ -5,6 +5,8 @@ project(tgnews)
 set(Boost_DEBUG on)  
 find_package(Boost REQUIRED COMPONENTS locale) 
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g0 -O3")
+
 include_directories(
     ${PROJECT_SOURCE_DIR}
     )   

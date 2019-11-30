@@ -69,9 +69,9 @@ namespace news_clustering {
 		return words;
 	}
 
-	std::vector<std::string> ContentParser::read_simple_vocabulary(std::string filename, std::locale locale)
+	std::unordered_map<std::string, std::string> ContentParser::read_simple_vocabulary(std::string filename, std::locale locale)
 	{
-		std::vector<std::string> words;
+		std::unordered_map<std::string, std::string> words;
 		std::string word;
 
 		std::fstream fin;
@@ -81,7 +81,7 @@ namespace news_clustering {
 
 		while (getline(fin, word))
 		{
-			words.push_back(word);
+			words[word] = word;
 		}
 
 		return words;
@@ -107,17 +107,17 @@ namespace news_clustering {
 
 	std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(std::string filename, std::locale locale, int start_tag, int end_tag)
 	{
-		std::vector<std::string> vocab = read_simple_vocabulary(filename, locale);
+		std::unordered_map<std::string, std::string> vocab = read_simple_vocabulary(filename, locale);
 		std::unordered_map<std::string, int> map; 
 
 		int i = start_tag;
-		for (auto word : vocab)
+		for (auto w = vocab.begin(); w != vocab.end(); w++) 
 		{
 			if (i > end_tag)
 			{
 				i = start_tag;
 			}
-			map[word] = i;
+			map[w->first] = i;
 			i++;
 		}
 

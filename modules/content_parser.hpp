@@ -36,7 +36,7 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<std::string> read_simple_vocabulary(std::string filename, std::locale locale);
+		std::unordered_map<std::string, std::string> read_simple_vocabulary(std::string filename, std::locale locale);
 		
 		/**
 		 * @brief 

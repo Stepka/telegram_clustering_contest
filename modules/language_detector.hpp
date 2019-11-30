@@ -20,33 +20,33 @@ namespace news_clustering {
 	 */
 	struct LanguageDetector {
 		
-		using Vocab = std::vector<std::string>;
+		using Vocab = std::unordered_map<std::string, std::string>;
 
-		LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales, 
-			size_t num_language_samples = 300, double language_score_min_level = 0.1);
-
-		/**
-		 * @brief 
-		 * @return 
-		 */
-		std::unordered_map<Language, std::vector<std::string>> detect_language(std::unordered_map<std::string, std::vector<std::string>>& contents);
+		LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales);
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		Language detect_language_by_single_content(std::vector<std::string> content);
+		std::unordered_map<Language, std::vector<std::string>> detect_language(
+			std::unordered_map<std::string, std::vector<std::string>>& contents, 
+			size_t num_language_samples, 
+			double language_score_min_level
+		);
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		Language detect_language_by_single_content(std::vector<std::string> content, size_t num_language_samples, double language_score_min_level);
 		
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		double count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab);
+		double count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::unordered_map<std::string, std::string>& vocab);
 
 	private:
-		/// Language consts
-		size_t num_language_samples_ = 300;
-		double language_score_min_level_ = 0.1;
 
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language> languages_;

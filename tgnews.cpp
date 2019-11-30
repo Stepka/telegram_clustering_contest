@@ -368,8 +368,11 @@ int main(int argc, char *argv[])
 		t1 = std::chrono::steady_clock::now();
 
 		auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
-
-		auto all_articles = language_detector.detect_language(all_content);
+		
+		/// Language consts
+		size_t num_language_samples = 300;
+		double language_score_min_level = 0.1;
+		auto all_articles = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);
 		
 		result = json();
 		for (auto i = all_articles.begin(); i != all_articles.end(); i++)

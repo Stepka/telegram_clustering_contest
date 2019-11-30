@@ -16,9 +16,8 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 namespace news_clustering {
 	
 
-	LanguageDetector::LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales, 
-		size_t num_language_samples, double language_score_min_level) :
-		languages_(languages), num_language_samples_(num_language_samples), language_score_min_level_(language_score_min_level)
+	LanguageDetector::LanguageDetector(const std::vector<Language>& languages, const std::vector<std::string>& vocab_paths, std::unordered_map<news_clustering::Language, std::locale>& locales) :
+		languages_(languages)
 	{
 		for (auto i = 0; i < languages.size(); i++)
 		{			
@@ -29,7 +28,11 @@ namespace news_clustering {
 	}
 
 	
-	std::unordered_map<Language, std::vector<std::string>> LanguageDetector::detect_language(std::unordered_map<std::string, std::vector<std::string>>& contents)
+	std::unordered_map<Language, std::vector<std::string>> LanguageDetector::detect_language(
+		std::unordered_map<std::string, std::vector<std::string>>& contents, 
+		size_t num_language_samples, 
+		double language_score_min_level
+	)
 	{
 		std::unordered_map<Language, std::vector<std::string>> result;
 		std::vector<std::string> content;
@@ -39,7 +42,7 @@ namespace news_clustering {
 		for (auto c = contents.begin(); c != contents.end(); c++)
 		{
 			content = c->second;
-			language = detect_language_by_single_content(content);
+			language = detect_language_by_single_content(content, num_language_samples, language_score_min_level);
 			result[language].push_back(c->first);
 		}
 
@@ -47,7 +50,7 @@ namespace news_clustering {
 	}
 
 
-	Language LanguageDetector::detect_language_by_single_content(std::vector<std::string> content)
+	Language LanguageDetector::detect_language_by_single_content(std::vector<std::string> content, size_t num_language_samples, double language_score_min_level)
 	{		
 		// Random sampleing 
 		std::vector<size_t> randomized_samples(content.size());
@@ -55,9 +58,9 @@ namespace news_clustering {
 		// shuffle samples after all was processed		
 		std::shuffle(randomized_samples.begin(), randomized_samples.end(), std::mt19937 { std::random_device {}() });
 
-		if (num_language_samples_ < randomized_samples.size())
+		if (num_language_samples < randomized_samples.size())
 		{
-			randomized_samples.resize(num_language_samples_);
+			randomized_samples.resize(num_language_samples);
 		}	  
 	
 		std::vector<double> scores(languages_.size());
@@ -66,24 +69,10 @@ namespace news_clustering {
 		{
 			scores[i] = count_vocab_frequency(content, randomized_samples, vocabs[i]);
 
-			//for (auto word : content)
-			//{
-			//	std::cout << word << " ";  
-			//}
-			//std::cout << std::endl;   
-			//std::cout << "Num words: " << content.size() << std::endl;  
-			//std::cout << std::endl; 
-			//std::cout << "Samples size: " << randomized_samples.size() << std::endl;  
-			//std::cout << std::endl;
-			//std::cout << "English score: " << scores[0] << std::endl;  
-			//std::cout << std::endl;  
-			//std::cout << "Russian score: " << scores[1] << std::endl;   
-			//std::cout << std::endl;  
-
 			auto max_score_iterator = std::max_element(scores.begin(), scores.end());
 			auto max_score_index = std::distance(scores.begin(), max_score_iterator);
 
-			if (scores[max_score_index] > language_score_min_level_)
+			if (scores[max_score_index] > language_score_min_level)
 			{
 				return languages_[max_score_index];
 			}
@@ -93,19 +82,17 @@ namespace news_clustering {
 	}
 
 
-	double LanguageDetector::count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::vector<std::string> vocab)
+	double LanguageDetector::count_vocab_frequency(std::vector<std::string> content, std::vector<size_t> sampling_indexes, std::unordered_map<std::string, std::string>& vocab)
 	{
 		int score = 0;
 
 		for (auto i = 0; i < sampling_indexes.size(); i++)
 		{
 			std::string sample = content[sampling_indexes[i]];
-			for (auto word : vocab)
+			
+			if (vocab.find(sample) == vocab.end()) 
 			{
-				if (sample == word)
-				{
-					score++;
-				}
+				score++;
 			}
 		}
 

@@ -10,6 +10,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 #include "news_detector.hpp"
 #include <cctype> 
+#include "../metric/modules/distance.hpp"
 
 
 namespace news_clustering {
@@ -34,12 +35,19 @@ namespace news_clustering {
 
 		std::vector<std::string> content;
 		std::vector<std::vector<int>> file_dates;
-
+		std::vector<std::vector<double>> file_dates_for_entropy;
+		
 		for (auto i = file_names.begin(); i != file_names.end(); i++) 
 		{ 		
 			content = contents[i->first]; 
 			file_dates = dates[i->first]; 
 			
+			//for (auto date : file_dates)
+			//{
+			//	file_dates_for_entropy.push_back({(double) date[0] + date[1] * 30.0 + date[2] * 365.0});
+			//}			
+			//auto e = metric::entropy(file_dates_for_entropy, 2, 2.0, metric::Euclidian<double>());
+
 			result[file_dates.size() > 0].push_back(i->first);
 		}
 
