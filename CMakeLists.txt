@@ -5,8 +5,6 @@ project(tgnews)
 set(Boost_DEBUG on)  
 find_package(Boost REQUIRED COMPONENTS locale) 
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g0 -O3")
-
 include_directories(
     ${PROJECT_SOURCE_DIR}
     )   
@@ -24,6 +22,21 @@ set_target_properties(tgnews PROPERTIES CXX_STANDARD 17)
 set_target_properties(cluster_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(cut_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(convert_tags_corpora PROPERTIES CXX_STANDARD 17)
+
+
+if(UNIX)
+	target_compile_options(tgnews PRIVATE -pthread -O3)
+	set_target_properties(tgnews PROPERTIES LINK_FLAGS -pthread)
+	
+	target_compile_options(cluster_word2vec PRIVATE -pthread -O3)
+	set_target_properties(cluster_word2vec PROPERTIES LINK_FLAGS -pthread)
+	
+	target_compile_options(cut_word2vec PRIVATE -pthread -O3)
+	set_target_properties(cut_word2vec PROPERTIES LINK_FLAGS -pthread)
+	
+	target_compile_options(convert_tags_corpora PRIVATE -pthread -O3)
+	set_target_properties(convert_tags_corpora PROPERTIES LINK_FLAGS -pthread)
+endif(UNIX)
 
 find_package(LAPACK) 
 
