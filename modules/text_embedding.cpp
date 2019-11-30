@@ -94,12 +94,11 @@ namespace news_clustering {
 		file_reader.close();
 	}
 
-	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale)
+	std::vector<float> Word2Vec::texts_distance(const std::vector<std::string>& long_text, const std::vector<std::vector<std::string>>& short_texts, std::locale locale, float num_closest_distances)
 	{
 		std::vector<float> result;
 		std::vector<float> distances;
 		float mean_distance;
-		float num_closest_distances = 5;
 		float num_closest_distances_cut;
 		
 		std::string single_word_lower;

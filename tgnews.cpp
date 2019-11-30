@@ -534,18 +534,37 @@ int main(int argc, char *argv[])
 		//auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, word2vec_embedders, language_boost_locales, categories);
 		auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, language_boost_locales, categories);
 	
-		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content); 
+		float category_detect_level = 0.9;
+		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content, category_detect_level); 
 	
 		result = json();
 		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 		{ 
-			json category_item = {
-				{"category", categories[english_language][i->first][0]}, 		
-				{"articles", std::vector<std::string>()}
-			};
-			for (auto k : i->second)
+			json category_item;			
+			if (i->first == -1)
 			{
-				articles_by_category[k] = categories[english_language][i->first][0];
+				category_item = {
+					{"category", "other"},
+					{"articles", std::vector<std::string>()}
+				};
+			}
+			else
+			{
+				category_item = {
+					{"category", categories[english_language][i->first][0]},
+					{"articles", std::vector<std::string>()}
+				};
+			}
+			for (auto k : i->second)
+			{	
+				if (i->first == -1)
+				{
+					articles_by_category[k] = "other";
+				}
+				else
+				{
+					articles_by_category[k] = categories[english_language][i->first][0];
+				}
 				category_item["articles"].push_back(k);
 			}
 			result.push_back(category_item);

@@ -136,7 +136,7 @@ namespace news_clustering {
 		}
 
 		// sorting by relevamce
-		std::vector<std::vector<std::string>> title_from_cluster;
+		//std::vector<std::vector<std::string>> title_from_cluster;
 		std::vector<float> text_distances;
 		auto cosineDistance = metric::Cosine<float>();
 		for (auto k = clustered_by_filename.begin(); k != clustered_by_filename.end(); k++)
@@ -146,13 +146,13 @@ namespace news_clustering {
 			// title embedding
 			text_embedding = text_embedders_[file_names[k->first]](content, locales_[file_names[k->first]]);
 				
-			title_from_cluster.clear();
+			//title_from_cluster.clear();
 			if (k->second.size() > 1)
 			{
 				text_distances.clear();
 				for (auto j = 0; j < k->second.size(); j++)
 				{
-					title_from_cluster.push_back(content_parser.split_string(titles[k->second[j]]));
+					//title_from_cluster.push_back(content_parser.split_string(titles[k->second[j]]));
 					text_distances.push_back(cosineDistance(text_embedding, text_embeddings_by_filename[k->second[j]]));
 				}
 

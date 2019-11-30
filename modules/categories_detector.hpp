@@ -35,7 +35,8 @@ namespace news_clustering {
 		 */
 		std::unordered_map<int, std::vector<std::string>> detect_categories(
 			std::unordered_map<std::string, news_clustering::Language>& file_names, 
-			std::unordered_map<std::string, std::vector<std::string>>& contents
+			std::unordered_map<std::string, std::vector<std::string>>& contents, 
+			float category_detect_level
 		);
 
 	private:

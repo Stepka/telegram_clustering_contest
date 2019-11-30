@@ -27,7 +27,8 @@ namespace news_clustering {
 	
 	std::unordered_map<int, std::vector<std::string>> CategoriesDetector::detect_categories(
 		std::unordered_map<std::string, news_clustering::Language>& file_names, 
-		std::unordered_map<std::string, std::vector<std::string>>& contents
+		std::unordered_map<std::string, std::vector<std::string>>& contents, 
+		float category_detect_level
 	)
 	{
 		std::unordered_map<int, std::vector<std::string>> result;
@@ -42,6 +43,7 @@ namespace news_clustering {
 		auto cosineDistance = metric::Cosine<float>();
 
 		std::vector<float>::iterator max_it;
+		size_t max_index;
 		
 		for (auto i = categories_.begin(); i != categories_.end(); i++)
 		{
@@ -69,8 +71,17 @@ namespace news_clustering {
 			}
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
-			// first element in the categories tags is a name of the category
-			result[std::distance(text_distances.begin(), max_it)].push_back(i->first);
+			max_index = std::distance(text_distances.begin(), max_it);
+			//std::cout << categories_[language][max_index][0] << " " << text_distances[max_index] << std::endl;
+			
+			if (text_distances[max_index] > category_detect_level)
+			{
+				result[max_index].push_back(i->first);
+			}
+			else
+			{
+				result[-1].push_back(i->first);
+			}
 		}
 
 		return result;
