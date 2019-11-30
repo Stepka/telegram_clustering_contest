@@ -18,7 +18,9 @@ namespace news_clustering {
 	 * 
 	 * @brief LanguageDetector
 	 */
-	struct NewsDetector {
+	class NewsDetector {
+		
+	public:
 
 		NewsDetector(
 			std::vector<Language>& languages, 

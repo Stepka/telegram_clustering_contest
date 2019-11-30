@@ -23,7 +23,9 @@ namespace news_clustering {
 	 * 
 	 * @brief Language
 	 */
-	struct Language {
+	class Language {
+		
+	public:
 		
 		Language() : language_id_(UNKNOWN_LANGUAGE)
 		{

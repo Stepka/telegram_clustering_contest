@@ -16,7 +16,9 @@ namespace news_clustering {
 	 * 
 	 * @brief ContentParser
 	 */
-	struct ContentParser {
+	class ContentParser {
+		
+	public:
 
 		explicit ContentParser() = default;
 

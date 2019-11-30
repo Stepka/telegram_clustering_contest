@@ -19,7 +19,9 @@ namespace news_clustering {
 	 * 
 	 * @brief NewsClusterizer
 	 */
-	struct NewsClusterizer {
+	class NewsClusterizer {
+		
+	public:
 		
 		NewsClusterizer(
 			std::vector<Language>& languages, 

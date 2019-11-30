@@ -18,7 +18,9 @@ namespace news_clustering {
 	 * 
 	 * @brief LanguageDetector
 	 */
-	struct LanguageDetector {
+	class LanguageDetector {
+		
+	public:
 		
 		using Vocab = std::unordered_map<std::string, std::string>;
 

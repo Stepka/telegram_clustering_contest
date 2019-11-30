@@ -20,7 +20,9 @@ namespace news_clustering {
 	 * 
 	 * @brief NER
 	 */
-	struct NER {
+	class NER {
+
+	public:
 		
 		NER() = default;
 
@@ -51,7 +53,9 @@ namespace news_clustering {
 	 * 
 	 * @brief DatesExtractor
 	 */
-	struct DatesExtractor {
+	class DatesExtractor {
+
+	public:
 		
 		using Vocab = std::unordered_map<std::string, int>;
 		
@@ -103,7 +107,9 @@ namespace news_clustering {
 	 * 
 	 * @brief TitleExtractor
 	 */
-	struct TitleExtractor {
+	class TitleExtractor {
+		
+	public:
 		
 		TitleExtractor() = default;
 

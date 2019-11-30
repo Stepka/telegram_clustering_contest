@@ -19,7 +19,9 @@ namespace news_clustering {
 	 * 
 	 * @brief NewsRanger
 	 */
-	struct NewsRanger {
+	class NewsRanger {
+		
+	public:
 
 		using NewsThread = std::unordered_map<std::string, std::vector<std::string>>;
 		

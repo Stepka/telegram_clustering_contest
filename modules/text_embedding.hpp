@@ -15,7 +15,9 @@ namespace news_clustering {
 	 * 
 	 * @brief Lemmatizer
 	 */
-	struct Lemmatizer {
+	class Lemmatizer {
+		
+	public:
 		
 		using Vocab = std::unordered_map<std::string, std::string>;
 		
@@ -40,7 +42,9 @@ namespace news_clustering {
 	 * 
 	 * @brief TextEmbedder
 	 */
-	struct TextEmbedder {
+	class TextEmbedder {
+		
+	public:
 		
 		using VocabClusters = std::unordered_map<std::string, long long>;
 		
@@ -75,7 +79,9 @@ namespace news_clustering {
 	 * 
 	 * @brief Word2Vec
 	 */
-	struct Word2Vec {
+	class Word2Vec {
+		
+	public:
 		
 		using VocabEmbeddings = std::unordered_map<std::string, std::vector<float>>;
 		
