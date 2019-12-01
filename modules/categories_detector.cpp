@@ -72,7 +72,7 @@ namespace news_clustering {
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
 			max_index = std::distance(text_distances.begin(), max_it);
-			//std::cout << categories_[language][max_index][0] << " " << text_distances[max_index] << std::endl;
+			std::cout << categories_[language][max_index][0] << " " << text_distances[max_index] << std::endl;
 			
 			if (text_distances[max_index] > category_detect_level)
 			{

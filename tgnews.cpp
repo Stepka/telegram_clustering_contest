@@ -235,6 +235,22 @@ int main(int argc, char *argv[])
 	}
 
 	std::cerr << std::endl;  
+
+	/// config
+	
+	std::string config_filename = "assets/default.cfg";
+	std::ifstream config_fin(config_filename, std::ifstream::in);
+	json config;
+
+	if (config_fin.is_open()) 
+	{
+		config_fin >> config;
+		std::cout << config.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+	}
+	else
+	{
+		std::cerr << "Cannot open config file: " << config_filename << ", use default values instead" << std::endl;
+	}
 	
 
 	/// variables	
