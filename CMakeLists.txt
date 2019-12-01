@@ -3,11 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
-
-add_definitions(-D_Boost_USE_STATIC_LIBS=ON)
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS locale thread system REQUIRED)
-
+#set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost REQUIRED COMPONENTS locale) 
 
 include_directories(
     ${PROJECT_SOURCE_DIR}
@@ -23,20 +20,9 @@ add_executable(cut_word2vec tools/cut_word2vec.cpp)
 add_executable(convert_tags_corpora tools/convert_tags_corpora.cpp) 
   
 set_target_properties(tgnews PROPERTIES CXX_STANDARD 17)
-set_target_properties(tgnews PROPERTIES LINK_SEARCH_START_STATIC 1)
-set_target_properties(tgnews PROPERTIES LINK_SEARCH_END_STATIC 1)
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-
 set_target_properties(cluster_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(cut_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(convert_tags_corpora PROPERTIES CXX_STANDARD 17)
-set_target_properties(cluster_word2vec PROPERTIES LINK_SEARCH_START_STATIC 1)
-set_target_properties(cluster_word2vec PROPERTIES LINK_SEARCH_END_STATIC 1)
-set_target_properties(cut_word2vec PROPERTIES LINK_SEARCH_START_STATIC 1)
-set_target_properties(cut_word2vec PROPERTIES LINK_SEARCH_END_STATIC 1)
-set_target_properties(convert_tags_corpora PROPERTIES LINK_SEARCH_START_STATIC 1)
-set_target_properties(convert_tags_corpora PROPERTIES LINK_SEARCH_END_STATIC 1)
 
 
 if(UNIX)
@@ -53,14 +39,14 @@ if(UNIX)
 	set_target_properties(convert_tags_corpora PROPERTIES LINK_FLAGS -pthread)
 endif(UNIX)
 
-#find_package(LAPACK)
+find_package(LAPACK) 
 
-#if(LAPACK_LIBRARIES)
-	target_link_libraries(tgnews PRIVATE liblapack.a)
-	target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
-	target_link_libraries(cut_word2vec PRIVATE liblapack.a)
-	target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
-#endif(LAPACK_LIBRARIES)
+if(LAPACK_LIBRARIES)
+	target_link_libraries(tgnews PRIVATE ${LAPACK_LIBRARIES})	
+	target_link_libraries(cluster_word2vec PRIVATE ${LAPACK_LIBRARIES})	
+	target_link_libraries(cut_word2vec PRIVATE ${LAPACK_LIBRARIES})	
+	target_link_libraries(convert_tags_corpora PRIVATE ${LAPACK_LIBRARIES})	
+endif(LAPACK_LIBRARIES)
  
 if(CMAKE_SYSTEM_NAME MATCHES Windows)
 	target_link_directories(tgnews PRIVATE ${PROJECT_SOURCE_DIR}/mkl/lib/intel64_win)
@@ -78,9 +64,8 @@ endif()
 
 
 if(UNIX)
-	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES})
+	target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES})
+	target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES})
+	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES})
 endif()
- 
