@@ -26,11 +26,18 @@ namespace news_clustering {
 		fin.imbue(locale);
 
 		fin.open(filename, std::ios::in);	
-
-		while (getline(fin, line))
+		
+		if (!fin.is_open())
 		{
-			words = split_string(line, delimeter, min_word_size);
-			result.insert(result.end(), words.begin(), words.end());
+			std::cerr << "Cannot open file: " << filename << std::endl;
+		}
+		else
+		{
+			while (getline(fin, line))
+			{
+				words = split_string(line, delimeter, min_word_size);
+				result.insert(result.end(), words.begin(), words.end());
+			}
 		}
 
 		return result;
@@ -78,10 +85,17 @@ namespace news_clustering {
 		fin.imbue(locale);
 
 		fin.open(filename, std::ios::in);
-
-		while (getline(fin, word))
+		
+		if (!fin.is_open())
 		{
-			words[word] = word;
+			std::cerr << "Cannot open file: " << filename << std::endl;
+		}
+		else
+		{
+			while (getline(fin, word))
+			{
+				words[word] = word;
+			}
 		}
 
 		return words;
@@ -96,10 +110,17 @@ namespace news_clustering {
 		fin.imbue(locale);
 
 		fin.open(filename, std::ios::in);
-
-		while (getline(fin, line))
+		
+		if (!fin.is_open())
 		{
-			lines.push_back(line);
+			std::cerr << "Cannot open file: " << filename << std::endl;
+		}
+		else
+		{
+			while (getline(fin, line))
+			{
+				lines.push_back(line);
+			}
 		}
 
 		return lines;
