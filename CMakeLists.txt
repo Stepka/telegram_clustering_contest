@@ -16,7 +16,7 @@ if(STATIC_LINKING)
 else()
 	message("Shared linking")
 	set(Boost_USE_STATIC_LIBS OFF)
-	set(Boost_USE_STATIC_RUNTIME ON)
+	set(Boost_USE_STATIC_RUNTIME OFF)
 	find_package(Boost COMPONENTS locale REQUIRED)
 endif()
 

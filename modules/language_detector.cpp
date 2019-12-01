@@ -68,14 +68,14 @@ namespace news_clustering {
 		for (auto i = 0; i < languages_.size(); i++)
 		{
 			scores[i] = count_vocab_frequency(content, randomized_samples, vocabs[i]);
+		}
 
-			auto max_score_iterator = std::max_element(scores.begin(), scores.end());
-			auto max_score_index = std::distance(scores.begin(), max_score_iterator);
+		auto max_score_iterator = std::max_element(scores.begin(), scores.end());
+		auto max_score_index = std::distance(scores.begin(), max_score_iterator);
 
-			if (scores[max_score_index] > language_score_min_level)
-			{
-				return languages_[max_score_index];
-			}
+		if (scores[max_score_index] > language_score_min_level)
+		{
+			return languages_[max_score_index];
 		}
 
 		return UNKNOWN_LANGUAGE;
@@ -90,7 +90,7 @@ namespace news_clustering {
 		{
 			std::string sample = content[sampling_indexes[i]];
 			
-			if (vocab.find(sample) == vocab.end()) 
+			if (vocab.find(sample) != vocab.end()) 
 			{
 				score++;
 			}
