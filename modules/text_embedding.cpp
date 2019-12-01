@@ -32,6 +32,7 @@ namespace news_clustering {
 		else
 		{
 			file_reader >> original_vocab_size >> num_clusters;
+			std::cerr << "TextEmbedder: " << original_vocab_size << " " << num_clusters << std::endl;
 			getline(file_reader, string_for_read);
 			for (auto i = 0; i < original_vocab_size; i++)
 			{

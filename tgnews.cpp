@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
 	std::string config_filename = "assets/default.cfg";
 	if (argc > 3)
 	{
-		data_path = argv[3];
+		config_filename = argv[3];
 		std::cerr << "Using config: " << config_filename << std::endl;  
 	}
 	std::ifstream config_fin(config_filename, std::ifstream::in);
