@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
-set(Boost_USE_STATIC_LIBS ON)
+#set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS locale) 
 
 include_directories(
