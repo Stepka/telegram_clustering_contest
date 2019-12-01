@@ -72,7 +72,7 @@ namespace news_clustering {
 
 		auto max_score_iterator = std::max_element(scores.begin(), scores.end());
 		auto max_score_index = std::distance(scores.begin(), max_score_iterator);
-
+		
 		if (scores[max_score_index] > language_score_min_level)
 		{
 			return languages_[max_score_index];

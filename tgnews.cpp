@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 	std::vector<int> today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
 
 	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
-	std::cout << "Num cores: " << concurentThreadsSupported << std::endl;
+	std::cerr << "Num cores: " << concurentThreadsSupported << std::endl;
 	std::mutex mutex_;
 
 
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 		
 		// Language consts
 		size_t num_language_samples = 300;
-		double language_score_min_level = 0.1;
+		double language_score_min_level = 0.075;
 		
 		auto found_languages = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);	
 
@@ -426,7 +426,10 @@ int main(int argc, char *argv[])
 		
 		if (mode == LANGUAGES_MODE)
 		{
+			std::cerr << "Print json" << std::endl;
+			std::cerr << result.size() << std::endl;
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::cerr << "Print json finished" << std::endl;
 		}
 	}
 	
