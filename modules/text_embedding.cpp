@@ -24,16 +24,23 @@ namespace news_clustering {
 		std::ifstream file_reader;
 	
 		file_reader.open(path, std::ios::binary | std::ios::out);	
-	
-		file_reader >> original_vocab_size >> num_clusters;	
-		getline(file_reader, string_for_read);
-		for (auto i = 0; i < original_vocab_size; i++)
+		
+		if (!file_reader.is_open())
 		{
-			getline(file_reader, string_for_read, ' ');
-			file_reader >> cluster_id;	
-			vocab_clusters[string_for_read] = cluster_id;
-
+			std::cerr << "Cannot open file: " << path << std::endl;
+		}
+		else
+		{
+			file_reader >> original_vocab_size >> num_clusters;
 			getline(file_reader, string_for_read);
+			for (auto i = 0; i < original_vocab_size; i++)
+			{
+				getline(file_reader, string_for_read, ' ');
+				file_reader >> cluster_id;
+				vocab_clusters[string_for_read] = cluster_id;
+
+				getline(file_reader, string_for_read);
+			}
 		}
 		file_reader.close();
 	}
@@ -76,20 +83,27 @@ namespace news_clustering {
 		std::ifstream file_reader;
 	
 		file_reader.open(path, std::ios::binary | std::ios::out);	
-	
-		file_reader >> original_vocab_size >> embedding_dimensions;	
-		getline(file_reader, string_for_read);
-		for (auto i = 0; i < original_vocab_size; i++)
+		
+		if (!file_reader.is_open())
 		{
-			getline(file_reader, string_for_read, ' ');
-			embedding.clear();
-
-			for (auto j = 0; j < embedding_dimensions; j++)
+			std::cerr << "Cannot open file: " << path << std::endl;
+		}
+		else
+		{
+			file_reader >> original_vocab_size >> embedding_dimensions;
+			getline(file_reader, string_for_read);
+			for (auto i = 0; i < original_vocab_size; i++)
 			{
-				file_reader.read(reinterpret_cast<char*>(&value), sizeof(float));
-				embedding.push_back(value);
+				getline(file_reader, string_for_read, ' ');
+				embedding.clear();
+
+				for (auto j = 0; j < embedding_dimensions; j++)
+				{
+					file_reader.read(reinterpret_cast<char*>(&value), sizeof(float));
+					embedding.push_back(value);
+				}
+				vocab_embeddings[string_for_read] = embedding;
 			}
-			vocab_embeddings[string_for_read] = embedding;
 		}
 		file_reader.close();
 	}
@@ -145,11 +159,9 @@ namespace news_clustering {
 			}
 			for (size_t i = 0; i < num_closest_distances_cut; i++)
 			{
-				//std::cout << distances[i] << '\n';
 				mean_distance += distances[i];
 			}
 			mean_distance /= num_closest_distances_cut;
-			//std::cout << "mean_distance = " << mean_distance << '\n';
 			result.push_back(mean_distance);
 		}
 
@@ -167,33 +179,40 @@ namespace news_clustering {
 	
 		std::ifstream file_reader;
 	
-		file_reader.open(path, std::ios::out);	
+		file_reader.open(path, std::ios::out);			
 		
-		while (file_reader >> lemma_id)
+		if (!file_reader.is_open())
 		{
-			getline(file_reader, string_for_read);
-
-			do
+			std::cerr << "Cannot open file: " << path << std::endl;
+		}
+		else
+		{
+			while (file_reader >> lemma_id)
 			{
 				getline(file_reader, string_for_read);
-				if (string_for_read.size() != 0)
+
+				do
 				{
-					string_for_read_stream = std::stringstream(string_for_read);
-					getline(string_for_read_stream, word, ' ');
-					if (lemma == "")
+					getline(file_reader, string_for_read);
+					if (string_for_read.size() != 0)
 					{
-						lemma = word;
+						string_for_read_stream = std::stringstream(string_for_read);
+						getline(string_for_read_stream, word, ' ');
+						if (lemma == "")
+						{
+							lemma = word;
+						}
+
+						getline(string_for_read_stream, p_o_s);
+
+						vocab[word] = lemma + "_" + p_o_s;
 					}
-				
-					getline(string_for_read_stream, p_o_s);
-			
-					vocab[word] = lemma + "_" + p_o_s;
-				}
-				else
-				{
-					lemma = "";
-				}
-			} while (string_for_read.size() != 0);
+					else
+					{
+						lemma = "";
+					}
+				} while (string_for_read.size() != 0);
+			}
 		}
 
 		file_reader.close();
