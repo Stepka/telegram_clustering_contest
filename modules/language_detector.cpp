@@ -42,7 +42,6 @@ namespace news_clustering {
 		for (auto c = contents.begin(); c != contents.end(); c++)
 		{
 			content = c->second;
-			std::cout << c->first << ": ";
 			language = detect_language_by_single_content(content, num_language_samples, language_score_min_level);
 			result[language].push_back(c->first);
 		}
@@ -74,7 +73,6 @@ namespace news_clustering {
 		auto max_score_iterator = std::max_element(scores.begin(), scores.end());
 		auto max_score_index = std::distance(scores.begin(), max_score_iterator);
 		
-		std::cout << languages_[max_score_index].to_string() << " " << scores[max_score_index] << std::endl;
 		if (scores[max_score_index] > language_score_min_level)
 		{
 			return languages_[max_score_index];
