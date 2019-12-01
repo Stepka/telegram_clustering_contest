@@ -125,6 +125,3 @@ if(CMAKE_SYSTEM_NAME MATCHES Windows)
 	target_link_directories(convert_tags_corpora PRIVATE ${PROJECT_SOURCE_DIR}/mkl/lib/intel64_win)
 	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} mkl_core.lib mkl_sequential.lib mkl_intel_lp64.lib)
 endif()
-
-
- 

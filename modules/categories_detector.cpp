@@ -70,6 +70,7 @@ namespace news_clustering {
 			content = contents[i->first];
 			language = file_names[i->first];
 			// title embedding
+			std::cout << "size:" << text_embedders_.size() << " " << language.to_string() << std::endl;
 			text_embedding = text_embedders_[language](content, locales_[language]);
 			for (const auto& emb : text_embedding)
 			{

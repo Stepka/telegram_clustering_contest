@@ -239,6 +239,11 @@ int main(int argc, char *argv[])
 	/// config
 	
 	std::string config_filename = "assets/default.cfg";
+	if (argc > 3)
+	{
+		data_path = argv[3];
+		std::cerr << "Using config: " << config_filename << std::endl;  
+	}
 	std::ifstream config_fin(config_filename, std::ifstream::in);
 	json config;
 
@@ -254,21 +259,21 @@ int main(int argc, char *argv[])
 		{
 			{"ru",
 				{
-					{"lemmatizer", "vocabs/dict.opcorpora-upos-tags-100000-words.voc"},
-					{"clusterizer", "vocabs/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin"},
-					{"top_freq_words", "vocabs/top_russian_words.voc"},
-					{"day_names", "vocabs/russian_day_names.voc"},
-					{"month_names", "vocabs/russian_month_names.voc"}
+					{"lemmatizer", "assets/vocabs/dict.opcorpora-upos-tags-100000-words.voc"},
+					{"clusterizer", "assets/vocabs/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin"},
+					{"top_freq_words", "assets/vocabs/top_russian_words.voc"},
+					{"day_names", "assets/vocabs/russian_day_names.voc"},
+					{"month_names", "assets/vocabs/russian_month_names.voc"}
 				}
 			},
 
 			{"en",
 				{
 					{"lemmatizer", ""},
-					{"clusterizer", "vocabs/GoogleNews-vectors-10000-words-30-clusters.bin"},
-					{"top_freq_words", "vocabs/top_english_words.voc"},
-					{"day_names", "vocabs/english_day_names.voc"},
-					{"month_names", "vocabs/english_month_names.voc"}
+					{"clusterizer", "assets/vocabs/GoogleNews-vectors-10000-words-30-clusters.bin"},
+					{"top_freq_words", "assets/vocabs/top_english_words.voc"},
+					{"day_names", "assets/vocabs/english_day_names.voc"},
+					{"month_names", "assets/vocabs/english_month_names.voc"}
 				}
 			}
 		};
