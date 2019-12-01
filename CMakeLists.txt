@@ -69,27 +69,37 @@ if(UNIX)
 	target_compile_options(convert_tags_corpora PRIVATE -pthread -g0 -O3)
 	set_target_properties(convert_tags_corpora PROPERTIES LINK_FLAGS -pthread)
 	
-
-	#find_package(LAPACK)
-
-	#if(LAPACK_LIBRARIES)
-		target_link_libraries(tgnews PRIVATE liblapack.a)
-		target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
-		target_link_libraries(cut_word2vec PRIVATE liblapack.a)
-		target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
-	#endif(LAPACK_LIBRARIES)
-	
 	if(STATIC_LINKING)
+	
+		#find_package(LAPACK)
+
+		#if(LAPACK_LIBRARIES)
+			target_link_libraries(tgnews PRIVATE liblapack.a)
+			target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
+			target_link_libraries(cut_word2vec PRIVATE liblapack.a)
+			target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
+		#endif(LAPACK_LIBRARIES)
+
 		target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 		target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 		target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 		target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 	else()
+
+		find_package(LAPACK)
+
+		if(LAPACK_LIBRARIES)
+			target_link_libraries(tgnews PRIVATE)
+			target_link_libraries(cluster_word2vec PRIVATE)
+			target_link_libraries(cut_word2vec PRIVATE)
+			target_link_libraries(convert_tags_corpora PRIVATE)
+		endif(LAPACK_LIBRARIES)
+
 		target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES})
 		target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES})
 		target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES})
 		target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES})
-	endif(UNIX)
+	endif(STATIC_LINKING)
  
 endif(UNIX)
 
