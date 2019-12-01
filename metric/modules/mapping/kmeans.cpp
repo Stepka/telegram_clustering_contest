@@ -47,7 +47,7 @@ namespace kmeans_details {
         }
         else if (distance_measure.compare("cosine") == 0) {
             T val = metric::Cosine<T>()(a, b);
-            return 1 - val;
+            return (1 - val) * 1000000;
         } else if (distance_measure.compare("manhatten") == 0)
             return metric::Manhatten<T>()(a, b);
         else {
@@ -103,6 +103,7 @@ namespace kmeans_details {
             auto distances = closest_distance(means, data, k, distance_measure);
             // Pick a random point weighted by the distance from existing means
             // TODO: This might convert floating point weights to ints, distorting the distribution for small weights
+			std::cout << distances[0] << " " << distance_measure << " " << distances[distances.size() - 1] << std::endl;
             std::discrete_distribution<size_t> generator(distances.begin(), distances.end());
             means.push_back(data[generator(rand_engine)]);
         }

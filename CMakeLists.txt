@@ -53,14 +53,14 @@ if(UNIX)
 	set_target_properties(convert_tags_corpora PROPERTIES LINK_FLAGS -pthread)
 endif(UNIX)
 
-find_package(LAPACK) 
+#find_package(LAPACK)
 
-if(LAPACK_LIBRARIES)
+#if(LAPACK_LIBRARIES)
 	target_link_libraries(tgnews PRIVATE liblapack.a)
 	target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
 	target_link_libraries(cut_word2vec PRIVATE liblapack.a)
 	target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
-endif(LAPACK_LIBRARIES)
+#endif(LAPACK_LIBRARIES)
  
 if(CMAKE_SYSTEM_NAME MATCHES Windows)
 	target_link_directories(tgnews PRIVATE ${PROJECT_SOURCE_DIR}/mkl/lib/intel64_win)

@@ -131,21 +131,19 @@ int main(int argc, char *argv[])
 	for (size_t i = 0; i < clusters.size(); i++)
 	{
 		std::cout << "cluster #" << i << ":" << std::endl;
-		if (clusters[i].size() < 20)
+		
+		for (size_t j = 0; j < 20; j++)
 		{
-			for (size_t j = 0; j < clusters[i].size(); j++)
+			if (j < clusters[i].size() - 1)
 			{
-				if (j < clusters[i].size() - 1)
-				{
-					std::cout << clusters[i][j] << ", ";
-				}
-				else
-				{
-					std::cout << clusters[i][j] << std::endl;
-				}
+				std::cout << clusters[i][j] << ", ";
 			}
-		}
-		else
+			else
+			{
+				std::cout << clusters[i][j] << std::endl;
+			}
+			}
+		if (clusters[i].size() > 20)
 		{
 			std::cout << "..." << std::endl;
 		}
