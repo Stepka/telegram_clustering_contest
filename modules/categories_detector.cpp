@@ -44,8 +44,6 @@ namespace news_clustering {
 
 		std::vector<float>::iterator max_it;
 		size_t max_index;
-
-		std::cout << "file_names size:" << file_names.size() << std::endl;
 		
 		for (auto i = categories_.begin(); i != categories_.end(); i++)
 		{
@@ -55,13 +53,6 @@ namespace news_clustering {
 				//text_distances = text_embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
 				category_embedding = text_embedders_[language](category, locales_[language]);
 				category_embeddings[language].push_back(category_embedding);
-				
-				std::cout << category[0] << ": " ;
-				for (const auto& emb : category_embedding)
-				{
-					std::cout << emb << " ";
-				}
-				std::cout << std::endl;
 			}
 		}
 		
@@ -70,14 +61,7 @@ namespace news_clustering {
 			content = contents[i->first];
 			language = file_names[i->first];
 			// title embedding
-			std::cout << "size:" << text_embedders_.size() << " " << language.to_string() << std::endl;
 			text_embedding = text_embedders_[language](content, locales_[language]);
-			for (const auto& emb : text_embedding)
-			{
-				std::cout << emb << " " ;
-			}
-			std::cout << std::endl;
-			std::cout << "size:" << text_embedding.size() << std::endl;
 			
 			text_distances.clear();
 			for (auto category : category_embeddings[language])
@@ -88,7 +72,6 @@ namespace news_clustering {
 			
 			max_it = std::max_element(text_distances.begin(), text_distances.end());
 			max_index = std::distance(text_distances.begin(), max_it);
-			std::cout << categories_[language][max_index][0] << " " << text_distances[max_index] << std::endl;
 			
 			if (text_distances[max_index] > category_detect_level)
 			{
