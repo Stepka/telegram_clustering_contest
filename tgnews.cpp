@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
 		for (auto i = found_languages.begin(); i != found_languages.end(); i++)
 		{		
 			// select only known languages
-			if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
+			//if (i->first.id() != news_clustering::UNKNOWN_LANGUAGE)
 			{	
 				json lang_item = {
 					{"lang_code", i->first.to_string()}, 		
