@@ -8,10 +8,12 @@ set(ICU_DEBUG on)
 find_package(ICU)
 
 if(STATIC_LINKING)
+	message("Static linking")
 	add_definitions(-D_Boost_USE_STATIC_LIBS=ON)
 	set(Boost_USE_STATIC_LIBS ON)
 	find_package(Boost COMPONENTS locale thread system REQUIRED)
 else()
+	message("Shared linking")
 	find_package(Boost COMPONENTS locale REQUIRED)
 endif()
 
