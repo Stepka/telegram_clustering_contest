@@ -44,6 +44,8 @@ namespace news_clustering {
 
 		std::vector<float>::iterator max_it;
 		size_t max_index;
+
+		std::cout << "file_names size:" << file_names.size() << std::endl;
 		
 		for (auto i = categories_.begin(); i != categories_.end(); i++)
 		{
@@ -53,6 +55,13 @@ namespace news_clustering {
 				//text_distances = text_embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
 				category_embedding = text_embedders_[language](category, locales_[language]);
 				category_embeddings[language].push_back(category_embedding);
+				
+				std::cout << category[0] << ": " ;
+				for (const auto& emb : category_embedding)
+				{
+					std::cout << emb << " ";
+				}
+				std::cout << std::endl;
 			}
 		}
 		
@@ -62,19 +71,17 @@ namespace news_clustering {
 			language = file_names[i->first];
 			// title embedding
 			text_embedding = text_embedders_[language](content, locales_[language]);
+			for (const auto& emb : text_embedding)
+			{
+				std::cout << emb << " " ;
+			}
+			std::cout << std::endl;
+			std::cout << "size:" << text_embedding.size() << std::endl;
 			
 			text_distances.clear();
 			for (auto category : category_embeddings[language])
 			{
 				//text_distances = text_embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
-				for (const auto& emb : text_embedding)
-				{
-					std::cout << emb << " " ;
-				}
-				for (const auto& emb : category)
-				{
-					std::cout << emb << " " ;
-				}
 				text_distances.push_back(cosineDistance(text_embedding, category));
 			}
 			

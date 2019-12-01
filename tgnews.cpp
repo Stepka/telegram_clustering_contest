@@ -370,12 +370,12 @@ int main(int argc, char *argv[])
 	// create lemmatizers here for reuse
 	std::unordered_map<news_clustering::Language, news_clustering::Lemmatizer> lemmatizers;
 	lemmatizers[english_language] = news_clustering::Lemmatizer();
-	lemmatizers[russian_language] = news_clustering::Lemmatizer("../data/embedding/dict.opcorpora-upos-tags-100000-words.voc", russian_language, "_PROPN");
+	lemmatizers[russian_language] = news_clustering::Lemmatizer(config["ru"]["lemmatizer"], russian_language, "_PROPN");
 			
 	//
 	std::unordered_map<news_clustering::Language, news_clustering::TextEmbedder> text_embedders;
-	text_embedders[english_language] = news_clustering::TextEmbedder("../data/embedding/GoogleNews-vectors-10000-words-30-clusters.bin", lemmatizers[english_language], english_language);
-	text_embedders[russian_language] = news_clustering::TextEmbedder("../data/embedding/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin", lemmatizers[russian_language], russian_language);
+	text_embedders[english_language] = news_clustering::TextEmbedder(config["en"]["clusterizer"], lemmatizers[english_language], english_language);
+	text_embedders[russian_language] = news_clustering::TextEmbedder(config["ru"]["clusterizer"], lemmatizers[russian_language], russian_language);
 			
 	//
 	//std::unordered_map<news_clustering::Language, news_clustering::Word2Vec> word2vec_embedders;
@@ -384,17 +384,17 @@ int main(int argc, char *argv[])
 	
 	//
 	std::vector<std::string> top_freq_vocab_paths;
-	top_freq_vocab_paths.push_back("assets/vocabs/top_english_words.voc");
-	top_freq_vocab_paths.push_back("assets/vocabs/top_russian_words.voc");
+	top_freq_vocab_paths.push_back(config["en"]["top_freq_words"]);
+	top_freq_vocab_paths.push_back(config["ru"]["top_freq_words"]);
 	
 	//
 	std::unordered_map<news_clustering::Language, std::string> day_names_path;
-	day_names_path[english_language] = "assets/vocabs/english_day_names.voc";
-	day_names_path[russian_language] = "assets/vocabs/russian_day_names.voc";
+	day_names_path[english_language] = config["en"]["day_names"];
+	day_names_path[russian_language] = config["ru"]["day_names"];
 	
 	std::unordered_map<news_clustering::Language, std::string> month_names_path;
-	month_names_path[english_language] = "assets/vocabs/english_month_names.voc";
-	month_names_path[russian_language] = "assets/vocabs/russian_month_names.voc";
+	month_names_path[english_language] = config["en"]["month_names"];
+	month_names_path[russian_language] = config["ru"]["month_names"];
 
 	//
 	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
