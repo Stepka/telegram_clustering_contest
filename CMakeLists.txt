@@ -8,7 +8,6 @@ add_definitions(-D_Boost_USE_STATIC_LIBS=ON)
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS locale thread system REQUIRED)
 
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
 include_directories(
     ${PROJECT_SOURCE_DIR}
@@ -24,6 +23,11 @@ add_executable(cut_word2vec tools/cut_word2vec.cpp)
 add_executable(convert_tags_corpora tools/convert_tags_corpora.cpp) 
   
 set_target_properties(tgnews PROPERTIES CXX_STANDARD 17)
+set_target_properties(tgnews PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(tgnews PROPERTIES LINK_SEARCH_END_STATIC 1)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+
 set_target_properties(cluster_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(cut_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(convert_tags_corpora PROPERTIES CXX_STANDARD 17)
