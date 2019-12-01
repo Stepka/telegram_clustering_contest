@@ -426,10 +426,7 @@ int main(int argc, char *argv[])
 		
 		if (mode == LANGUAGES_MODE)
 		{
-			std::cerr << "Print json" << std::endl;
-			std::cerr << result.size() << std::endl;
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
-			std::cerr << "Print json finished" << std::endl;
 		}
 	}
 	
