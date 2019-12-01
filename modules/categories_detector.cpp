@@ -67,6 +67,14 @@ namespace news_clustering {
 			for (auto category : category_embeddings[language])
 			{
 				//text_distances = text_embedders_[i->second].texts_distance(content, categories_[i->second], locales_[i->second]);
+				for (const auto& emb : text_embedding)
+				{
+					std::cout << emb << " " ;
+				}
+				for (const auto& emb : category)
+				{
+					std::cout << emb << " " ;
+				}
 				text_distances.push_back(cosineDistance(text_embedding, category));
 			}
 			

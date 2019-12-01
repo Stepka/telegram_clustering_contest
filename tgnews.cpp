@@ -245,11 +245,33 @@ int main(int argc, char *argv[])
 	if (config_fin.is_open()) 
 	{
 		config_fin >> config;
-		std::cout << config.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 	}
 	else
 	{
 		std::cerr << "Cannot open config file: " << config_filename << ", use default values instead" << std::endl;
+
+		config =
+		{
+			{"ru",
+				{
+					{"lemmatizer", "vocabs/dict.opcorpora-upos-tags-100000-words.voc"},
+					{"clusterizer", "vocabs/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin"},
+					{"top_freq_words", "vocabs/top_russian_words.voc"},
+					{"day_names", "vocabs/russian_day_names.voc"},
+					{"month_names", "vocabs/russian_month_names.voc"}
+				}
+			},
+
+			{"en",
+				{
+					{"lemmatizer", ""},
+					{"clusterizer", "vocabs/GoogleNews-vectors-10000-words-30-clusters.bin"},
+					{"top_freq_words", "vocabs/top_english_words.voc"},
+					{"day_names", "vocabs/english_day_names.voc"},
+					{"month_names", "vocabs/english_month_names.voc"}
+				}
+			}
+		};
 	}
 	
 
