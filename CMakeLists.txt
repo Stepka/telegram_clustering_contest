@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
-set(ICU_DEBUG on)   
+#set(ICU_DEBUG on)   
 
-find_package(ICU)
+#find_package(ICU)
 
 if(STATIC_LINKING)
 	message("Static linking")
@@ -78,11 +78,18 @@ if(UNIX)
 		target_link_libraries(cut_word2vec PRIVATE liblapack.a)
 		target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
 	#endif(LAPACK_LIBRARIES)
-
-	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
-	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	
+	if(STATIC_LINKING)
+		target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+		target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+		target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+		target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	else()
+		target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES})
+		target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES})
+		target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES})
+		target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES})
+	endif(UNIX)
  
 endif(UNIX)
 
