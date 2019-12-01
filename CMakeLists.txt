@@ -3,15 +3,16 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
+set(ICU_DEBUG on)   
 
-if(CMAKE_SYSTEM_NAME MATCHES Windows)
-	find_package(Boost COMPONENTS locale REQUIRED)
-endif()
+find_package(ICU)
 
-if(UNIX)
+if(STATIC_LINKING)
 	add_definitions(-D_Boost_USE_STATIC_LIBS=ON)
 	set(Boost_USE_STATIC_LIBS ON)
 	find_package(Boost COMPONENTS locale thread system REQUIRED)
+else()
+	find_package(Boost COMPONENTS locale REQUIRED)
 endif()
 
 
