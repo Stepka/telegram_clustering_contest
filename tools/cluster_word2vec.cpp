@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	auto t0 = std::chrono::steady_clock::now();
 	auto t1 = std::chrono::steady_clock::now();
 
-	auto[assignments, means, counts] = metric::kmeans(embeddings, num_clusters); // clusters the data in num_clusters groups.
+	auto[assignments, means, counts] = metric::kmeans(embeddings, num_clusters, 200, "cosine"); // clusters the data in num_clusters groups.
 
 
 	std::vector<std::vector<std::string>> clusters(num_clusters);

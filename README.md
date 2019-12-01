@@ -2,7 +2,7 @@
 ---
 
 ## Run
-*You need STL, Boost and C++17 support to compile.*
+*You need STL, Boost, Lapack and C++17 support to compile.*
 
 #### Using CMake
 

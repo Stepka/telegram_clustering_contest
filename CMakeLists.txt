@@ -31,6 +31,12 @@ set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 set_target_properties(cluster_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(cut_word2vec PROPERTIES CXX_STANDARD 17)
 set_target_properties(convert_tags_corpora PROPERTIES CXX_STANDARD 17)
+set_target_properties(cluster_word2vec PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(cluster_word2vec PROPERTIES LINK_SEARCH_END_STATIC 1)
+set_target_properties(cut_word2vec PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(cut_word2vec PROPERTIES LINK_SEARCH_END_STATIC 1)
+set_target_properties(convert_tags_corpora PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(convert_tags_corpora PROPERTIES LINK_SEARCH_END_STATIC 1)
 
 
 if(UNIX)
