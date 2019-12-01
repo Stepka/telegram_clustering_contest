@@ -14,6 +14,7 @@ if(STATIC_LINKING)
 	find_package(Boost COMPONENTS locale thread system REQUIRED)
 else()
 	message("Shared linking")
+	set(Boost_USE_STATIC_LIBS OFF)
 	find_package(Boost COMPONENTS locale REQUIRED)
 endif()
 
