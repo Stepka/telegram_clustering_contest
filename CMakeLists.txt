@@ -50,10 +50,10 @@ endif(UNIX)
 find_package(LAPACK) 
 
 if(LAPACK_LIBRARIES)
-	target_link_libraries(tgnews PRIVATE ${LAPACK_LIBRARIES})	
-	target_link_libraries(cluster_word2vec PRIVATE ${LAPACK_LIBRARIES})	
-	target_link_libraries(cut_word2vec PRIVATE ${LAPACK_LIBRARIES})	
-	target_link_libraries(convert_tags_corpora PRIVATE ${LAPACK_LIBRARIES})	
+	target_link_libraries(tgnews PRIVATE liblapack.a)
+	target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
+	target_link_libraries(cut_word2vec PRIVATE liblapack.a)
+	target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
 endif(LAPACK_LIBRARIES)
  
 if(CMAKE_SYSTEM_NAME MATCHES Windows)
@@ -72,9 +72,9 @@ endif()
 
 
 if(UNIX)
-	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES})
-	target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES})
-	target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES})
-	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES})
+	target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	target_link_libraries(cut_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
+	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 endif()
  

@@ -44,6 +44,10 @@ namespace kmeans_details {
         else if (distance_measure.compare("rms") == 0) {
             T val = metric::Euclidian<T>()(a, b);
             return val * val;
+        }
+        else if (distance_measure.compare("cosine") == 0) {
+            T val = metric::Cosine<T>()(a, b);
+            return 1 - val;
         } else if (distance_measure.compare("manhatten") == 0)
             return metric::Manhatten<T>()(a, b);
         else {
