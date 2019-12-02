@@ -14,6 +14,11 @@ The general idea that lies in the core of my way of solving task is:
   - in the end we have single vector for each text
 - When we have embeddings vectors for text we can cluster it, compare with categories (converted to embeddings as text too), etc
 
+I chose technologies with the following criteria (order is important):
+- **speed**
+- **accuracy**
+- **recall**
+
 ***Futher improvements:***
 - Tune hyperparams using supervised learning
 - Use multithreading and batch sampling
