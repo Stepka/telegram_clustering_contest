@@ -458,7 +458,7 @@ int main(int argc, char *argv[])
 		
 		if (mode == LANGUAGES_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::cout << result.dump(4, ' ', false, json::error_handler_t::ignore) << std::endl;
 		}
 	}
 	
@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
 
 		if (mode == NEWS_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::cout << result.dump(4, ' ', false, json::error_handler_t::ignore) << std::endl;
 		}
 	}
 
@@ -615,9 +615,7 @@ int main(int argc, char *argv[])
 
 		if (mode == CATEGORIES_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
-			std::ofstream o("result.json");
-			o << std::setw(4) << result << std::endl;
+			std::cout << result.dump(4, ' ', false, json::error_handler_t::ignore) << std::endl;
 		}
 	}
 
@@ -658,7 +656,7 @@ int main(int argc, char *argv[])
 
 		if (mode == THREAD_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::cout << result.dump(4, ' ', false, json::error_handler_t::ignore) << std::endl;
 			std::ofstream o("result.json");
 			o << std::setw(4) << result << std::endl;
 		}
@@ -734,7 +732,7 @@ int main(int argc, char *argv[])
 
 		if (mode == TOP_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::cout << result.dump(4, ' ', false, json::error_handler_t::ignore) << std::endl;
 			std::ofstream o("result.json");
 			o << std::setw(4) << result << std::endl;
 		}
