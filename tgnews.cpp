@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
 		/// Hyperparams
 		// Language consts
 		size_t num_language_samples = 300;
-		double language_score_min_level = 0.075;
+		double language_score_min_level = 0.1;
 		
 		auto found_languages = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);	
 
