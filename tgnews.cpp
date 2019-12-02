@@ -657,8 +657,8 @@ int main(int argc, char *argv[])
 		if (mode == THREAD_MODE)
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
-			//std::ofstream o("result.json");
-			//o << std::setw(4) << result << std::endl;
+			std::ofstream o("result.json");
+			o << std::setw(4) << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 		}
 	}
 
