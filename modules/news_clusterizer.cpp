@@ -91,48 +91,6 @@ namespace news_clustering {
 					clustered_by_filename[indexed_file_names[i->first][k]].push_back(indexed_file_names[i->first][k]);
 				}
 			}
-
-			std::cout << "assignments:" << std::endl;
-			for (size_t i = 0; i < assignments.size(); i++)
-			{
-				if (i < assignments.size() - 1)
-				{
-					std::cout << assignments[i] << ", ";
-				}
-				else
-				{
-					std::cout << assignments[i] << std::endl;
-				}
-			}
-			std::cout << '\n';
-
-			std::cout << "seeds:" << std::endl;
-			for (size_t i = 0; i < seeds.size(); i++)
-			{
-				if (i < seeds.size() - 1)
-				{
-					std::cout << seeds[i] << ", ";
-				}
-				else
-				{
-					std::cout << seeds[i] << std::endl;
-				}
-			}
-			std::cout << '\n';
-
-			std::cout << "counts:" << std::endl;
-			for (size_t i = 0; i < counts.size(); i++)
-			{
-				if (i < counts.size() - 1)
-				{
-					std::cout << counts[i] << ", ";
-				}
-				else
-				{
-					std::cout << counts[i] << std::endl;
-				}
-			}
-			std::cout << '\n' << std::endl;
 		}
 
 		// sorting by relevamce
