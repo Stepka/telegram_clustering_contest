@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
 		//auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, word2vec_embedders, language_boost_locales);
 		auto news_clusterizer = news_clustering::NewsClusterizer(languages, text_embedders, language_boost_locales);
 	
-		float eps = 2;
+		float eps = 20;
 		std::size_t minpts = 2;
 		clustered_articles = news_clusterizer.clusterize(selected_news_articles, selected_news_content, title_articles, eps, minpts); 
 	
@@ -656,7 +656,7 @@ int main(int argc, char *argv[])
 
 		if (mode == THREAD_MODE)
 		{
-			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			//std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 			std::ofstream o("result.json");
 			o << std::setw(4) << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 		}
@@ -734,7 +734,7 @@ int main(int argc, char *argv[])
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 			std::ofstream o("result.json");
-			o << std::setw(4) << result << std::endl;
+			o << std::setw(4) << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 		}
 	}
 	
