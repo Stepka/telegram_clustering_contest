@@ -50,6 +50,12 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
+		std::vector<std::vector<std::string>> parse_categories(const std::string& filename, const std::locale& locale, char delimeter = ' ');
+		
+		/**
+		 * @brief 
+		 * @return 
+		 */
 		std::vector<std::string> split_string(std::string& line, char delimeter = ' ', int min_word_size = 1);
 	};
 

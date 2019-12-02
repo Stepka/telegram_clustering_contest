@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.10)
 project(tgnews)
 
 set(Boost_DEBUG on)  
-#set(ICU_DEBUG on)   
-
-#find_package(ICU)
 
 if(STATIC_LINKING)
 	message("Static linking")
@@ -71,14 +68,10 @@ if(UNIX)
 	
 	if(STATIC_LINKING)
 	
-		#find_package(LAPACK)
-
-		#if(LAPACK_LIBRARIES)
-			target_link_libraries(tgnews PRIVATE liblapack.a)
-			target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
-			target_link_libraries(cut_word2vec PRIVATE liblapack.a)
-			target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
-		#endif(LAPACK_LIBRARIES)
+		target_link_libraries(tgnews PRIVATE liblapack.a)
+		target_link_libraries(cluster_word2vec PRIVATE liblapack.a)
+		target_link_libraries(cut_word2vec PRIVATE liblapack.a)
+		target_link_libraries(convert_tags_corpora PRIVATE liblapack.a)
 
 		target_link_libraries(tgnews PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
 		target_link_libraries(cluster_word2vec PRIVATE ${Boost_LIBRARIES} icuuc.a icui18n.a)
@@ -124,4 +117,4 @@ if(CMAKE_SYSTEM_NAME MATCHES Windows)
 	
 	target_link_directories(convert_tags_corpora PRIVATE ${PROJECT_SOURCE_DIR}/mkl/lib/intel64_win)
 	target_link_libraries(convert_tags_corpora PRIVATE ${Boost_LIBRARIES} mkl_core.lib mkl_sequential.lib mkl_intel_lp64.lib)
-endif()
+endif() 

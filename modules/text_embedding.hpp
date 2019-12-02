@@ -56,7 +56,7 @@ namespace news_clustering {
 		 * @brief 
 		 * @return 
 		 */
-		std::vector<int> operator()(const std::vector<std::string>& words, const std::locale& locale);
+		std::vector<int> operator()(const std::vector<std::string>& words, const std::locale& locale, bool increment = true);
 
 		/**
 		 * @brief 

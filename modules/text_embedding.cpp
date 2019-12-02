@@ -45,7 +45,7 @@ namespace news_clustering {
 		file_reader.close();
 	}
 
-	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, const std::locale& locale)
+	std::vector<int> TextEmbedder::operator()(const std::vector<std::string>& words, const std::locale& locale, bool increment)
 	{
 		std::vector<int> result(num_clusters, 0);
 		std::string word_lower;
@@ -56,7 +56,14 @@ namespace news_clustering {
 			word_lower = lemmatizer_(word_lower);
 			if (vocab_clusters.find(word_lower) != vocab_clusters.end())
 			{
-				result[vocab_clusters[word_lower]]++;
+				if (increment)
+				{
+					result[vocab_clusters[word_lower]]++;
+				}
+				else
+				{
+					result[vocab_clusters[word_lower]] = 1;
+				}
 			}
 		}
 

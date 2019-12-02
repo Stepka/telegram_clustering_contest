@@ -43,6 +43,34 @@ namespace news_clustering {
 		return result;
 	}
 	
+	std::vector<std::vector<std::string>> ContentParser::parse_categories(const std::string& filename, const std::locale& locale, char delimeter)
+	{
+		std::vector<std::string> words;
+		std::vector<std::vector<std::string>> result;
+	
+		std::string line, word;
+
+		std::fstream fin;
+		fin.imbue(locale);
+
+		fin.open(filename, std::ios::in);	
+		
+		if (!fin.is_open())
+		{
+			std::cerr << "Cannot open file: " << filename << std::endl;
+		}
+		else
+		{
+			while (getline(fin, line))
+			{
+				words = split_string(line, delimeter);
+				result.push_back(words);
+			}
+		}
+
+		return result;
+	}
+	
 	std::vector<std::string> ContentParser::split_string(std::string& line, char delimeter, int min_word_size)
 	{
 		std::vector<std::string> words;

@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
 	{
 		config_filename = argv[3];
 		std::cerr << "Using config: " << config_filename << std::endl;  
+		std::cerr << std::endl;
 	}
 	std::ifstream config_fin(config_filename, std::ifstream::in);
 	json config;
@@ -254,13 +255,14 @@ int main(int argc, char *argv[])
 	else
 	{
 		std::cerr << "Cannot open config file: " << config_filename << ", use default values instead" << std::endl;
+		std::cerr << std::endl;
 
 		config =
 		{
 			{"ru",
 				{
-					{"lemmatizer", "assets/vocabs/dict.opcorpora-upos-tags-100000-words.voc"},
-					{"clusterizer", "assets/vocabs/RusVectoresNews-2019-vectores-10000-words-30-clusters.bin"},
+					{"lemmatizer", "assets/vocabs/dict.opcorpora-upos-tags.voc"},
+					{"clusterizer", "assets/vocabs/RusVectoresNews-2019-vectores-50000-words-1024-clusters.bin"},
 					{"top_freq_words", "assets/vocabs/top_russian_words.voc"},
 					{"day_names", "assets/vocabs/russian_day_names.voc"},
 					{"month_names", "assets/vocabs/russian_month_names.voc"}
@@ -270,7 +272,7 @@ int main(int argc, char *argv[])
 			{"en",
 				{
 					{"lemmatizer", ""},
-					{"clusterizer", "assets/vocabs/GoogleNews-vectors-10000-words-30-clusters.bin"},
+					{"clusterizer", "assets/vocabs/GoogleNews-vectors-50000-words-1024-clusters.bin"},
 					{"top_freq_words", "assets/vocabs/top_english_words.voc"},
 					{"day_names", "assets/vocabs/english_day_names.voc"},
 					{"month_names", "assets/vocabs/english_month_names.voc"}
@@ -403,22 +405,8 @@ int main(int argc, char *argv[])
 
 	//
 	std::unordered_map<news_clustering::Language, std::vector<std::vector<std::string>>> categories;
-	categories[english_language] = {
-		{"society", "politics", "elections", "legislation", "incidents", "crime"}, 
-		{"economy", "markets", "finance", "business"}, 
-		{"technology", "gadgets", "auto", "apps", "internet"}, 
-		{"sports", "cybersport"},
-		{"entertainment", "movies", "music", "games", "books", "arts"}, 
-		{"science", "health", "biology", "physics", "genetics"} 
-	};
-	categories[russian_language] = { 
-		{"общество", "политика", "выборы", "закон", "инцидент", "криминал"}, 
-		{"экономика", "рынок", "финансы", "бизнес"}, 
-		{"технология", "гаджет", "авто", "приложение", "интернет"}, 
-		{"спорт", "киберспорт"},
-		{"развлечение", "фильм", "музыка", "игра", "книга", "искусство"}, 
-		{"наука", "здоровье", "биология", "физика", "генетика"}
-	};
+	categories[english_language] = content_parser.parse_categories(config["en"]["categories"], en_boost_locale);
+	categories[russian_language] = content_parser.parse_categories(config["ru"]["categories"], en_boost_locale);
 
 	t2 = std::chrono::steady_clock::now();
 	std::cerr << "Vocab have parsed (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
@@ -436,6 +424,7 @@ int main(int argc, char *argv[])
 
 		auto language_detector = news_clustering::LanguageDetector(languages, top_freq_vocab_paths, language_boost_locales);
 		
+		/// Hyperparams
 		// Language consts
 		size_t num_language_samples = 300;
 		double language_score_min_level = 0.075;
@@ -578,8 +567,14 @@ int main(int argc, char *argv[])
 		//auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, word2vec_embedders, language_boost_locales, categories);
 		auto categories_detector = news_clustering::CategoriesDetector(languages, text_embedders, language_boost_locales, categories);
 	
-		float category_detect_level = 0.9;
-		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content, category_detect_level); 
+		/// Hyperparams
+		// Categories consts	
+		std::unordered_map<news_clustering::Language, std::vector<float>> category_detect_levels;
+		// society | economy | technology | sports | entertainment | science
+		category_detect_levels[english_language] = {0.02, 0.02, 0.02, 0.02, 0.02, 0.02};
+		category_detect_levels[russian_language] = {0.02, 0.02, 0.02, 0.02, 0.02, 0.02};
+
+		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content, category_detect_levels); 
 	
 		result = json();
 		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
@@ -621,6 +616,8 @@ int main(int argc, char *argv[])
 		if (mode == CATEGORIES_MODE)
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::ofstream o("result.json");
+			o << std::setw(4) << result << std::endl;
 		}
 	}
 
@@ -662,6 +659,8 @@ int main(int argc, char *argv[])
 		if (mode == THREAD_MODE)
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::ofstream o("result.json");
+			o << std::setw(4) << result << std::endl;
 		}
 	}
 
@@ -736,6 +735,8 @@ int main(int argc, char *argv[])
 		if (mode == TOP_MODE)
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
+			std::ofstream o("result.json");
+			o << std::setw(4) << result << std::endl;
 		}
 	}
 	
