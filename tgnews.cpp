@@ -160,8 +160,8 @@ std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively =
 
 int main(int argc, char *argv[]) 
 {	
-	std::cerr << "tgnews have started" << std::endl;  
-	std::cerr << std::endl;  
+	//std::cerr << "tgnews have started" << std::endl;  
+	//std::cerr << std::endl;  
 	
 	auto total_start_time = std::chrono::steady_clock::now();
 	auto t0 = std::chrono::steady_clock::now();
@@ -227,14 +227,14 @@ int main(int argc, char *argv[])
 	if (argc > 2)
 	{
 		data_path = argv[2];
-		std::cerr << "Using data path: " << data_path << std::endl;  
+		//std::cerr << "Using data path: " << data_path << std::endl;  
 	}
 	else
 	{
 		std::cerr << "You haven't specified data path, default path will be used instead: " << data_path << std::endl;  
 	}
 
-	std::cerr << std::endl;  
+	//std::cerr << std::endl;  
 
 	/// config
 	
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 
 	/// Load data
 
-	std::cerr << "Data loading..." << std::endl;  
+	//std::cerr << "Data loading..." << std::endl;  
 
 	t0 = std::chrono::steady_clock::now();
 	t1 = std::chrono::steady_clock::now();
@@ -316,12 +316,12 @@ int main(int argc, char *argv[])
 	std::vector<int> today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
 
 	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
-	std::cerr << "Num cores: " << concurentThreadsSupported << std::endl;
+	//std::cerr << "Num cores: " << concurentThreadsSupported << std::endl;
 	std::mutex mutex_;
 
 
 	auto file_names = selectHtmlFiles(data_path);
-	std::cerr << "Num files: " << file_names.size() << std::endl;  
+	//std::cerr << "Num files: " << file_names.size() << std::endl;  
 
 	
 	auto content_parser = news_clustering::ContentParser();
@@ -350,13 +350,13 @@ int main(int argc, char *argv[])
 	pool.close();
 
 	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
+	//std::cerr << "Data have loaded (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	//std::cerr << std::endl;  
 
 
 	/// Data and vocabs prepare
 
-	std::cerr << "Vocabs parsing..." << std::endl;  
+	//std::cerr << "Vocabs parsing..." << std::endl;  
 
 	t0 = std::chrono::steady_clock::now();
 	
@@ -409,15 +409,15 @@ int main(int argc, char *argv[])
 	categories[russian_language] = content_parser.parse_categories(config["ru"]["categories"], en_boost_locale);
 
 	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Vocab have parsed (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-	std::cerr << std::endl;  
+	//std::cerr << "Vocab have parsed (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+	//std::cerr << std::endl;  
 
 
 	/// Language detection
 
 	if (mode == LANGUAGES_MODE || mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
 	{
-		std::cerr << "Language detection..." << std::endl;
+		//std::cerr << "Language detection..." << std::endl;
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -459,8 +459,8 @@ int main(int argc, char *argv[])
 		}
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;
+		//std::cerr << "Language detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;
 		
 		if (mode == LANGUAGES_MODE)
 		{
@@ -474,7 +474,7 @@ int main(int argc, char *argv[])
 	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
 	{
 
-		std::cerr << "Name Entities recognition..." << std::endl;
+		//std::cerr << "Name Entities recognition..." << std::endl;
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -483,13 +483,13 @@ int main(int argc, char *argv[])
 		//auto ner_articles = ner.find_name_entities(selected_language_articles, selected_language_content);
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;
+		//std::cerr << "Name Entities recognition have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;
 
 
 		/// Titles extracting
 
-		std::cerr << "Titles extracting..." << std::endl;
+		//std::cerr << "Titles extracting..." << std::endl;
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -498,13 +498,13 @@ int main(int argc, char *argv[])
 		title_articles = title_extractor.find_titles(selected_language_articles);
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Titles extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;
+		//std::cerr << "Titles extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;
 
 
 		/// Dates extracting
 
-		std::cerr << "Dates extracting..." << std::endl;
+		//std::cerr << "Dates extracting..." << std::endl;
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -514,8 +514,8 @@ int main(int argc, char *argv[])
 		found_dates = dates_extractor.find_dates(selected_language_articles, selected_language_content);
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Dates extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;
+		//std::cerr << "Dates extracting have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;
 	}
 
 
@@ -523,7 +523,7 @@ int main(int argc, char *argv[])
 	
 	if (mode == NEWS_MODE || mode == CATEGORIES_MODE || mode == THREAD_MODE || mode == TOP_MODE)
 	{	
-		std::cerr << "News detection..." << std::endl;  
+		//std::cerr << "News detection..." << std::endl;  
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -561,8 +561,8 @@ int main(int argc, char *argv[])
 		}
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "News detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;  
+		//std::cerr << "News detection have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;  
 
 		if (mode == NEWS_MODE)
 		{
@@ -575,7 +575,7 @@ int main(int argc, char *argv[])
 	
 	if (mode == CATEGORIES_MODE || mode == TOP_MODE)
 	{		
-		std::cerr << "News categorization..." << std::endl;  
+		//std::cerr << "News categorization..." << std::endl;  
 	
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -631,8 +631,8 @@ int main(int argc, char *argv[])
 		}
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "News categorization have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;  
+		//std::cerr << "News categorization have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;  
 
 		if (mode == CATEGORIES_MODE)
 		{
@@ -645,7 +645,7 @@ int main(int argc, char *argv[])
 	
 	if (mode == THREAD_MODE || mode == TOP_MODE)
 	{	
-		std::cerr << "Threads clustering..." << std::endl;  
+		//std::cerr << "Threads clustering..." << std::endl;  
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -677,8 +677,8 @@ int main(int argc, char *argv[])
 		}
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Threads clustering have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;  
+		//std::cerr << "Threads clustering have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;  
 
 		if (mode == THREAD_MODE)
 		{
@@ -691,7 +691,7 @@ int main(int argc, char *argv[])
 	
 	if (mode == TOP_MODE)
 	{		
-		std::cerr << "Threads arranging..." << std::endl;  
+		//std::cerr << "Threads arranging..." << std::endl;  
 
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
@@ -756,8 +756,8 @@ int main(int argc, char *argv[])
 		}
 
 		t2 = std::chrono::steady_clock::now();
-		std::cerr << "Threads arranging have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
-		std::cerr << std::endl;  
+		//std::cerr << "Threads arranging have finished (Time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count()) / 1000000 << " s)" << std::endl;
+		//std::cerr << std::endl;  
 
 		if (mode == TOP_MODE)
 		{
@@ -766,7 +766,7 @@ int main(int argc, char *argv[])
 	}
 	
 	t2 = std::chrono::steady_clock::now();
-	std::cerr << "Total time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - total_start_time).count()) / 1000000 << " s" << std::endl;
+	//std::cerr << "Total time = " << double(std::chrono::duration_cast<std::chrono::microseconds>(t2 - total_start_time).count()) / 1000000 << " s" << std::endl;
 
     return 0;
 }
