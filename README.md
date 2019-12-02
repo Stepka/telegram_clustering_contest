@@ -2,10 +2,12 @@
 
 CLI client for telegram clustering contest. 
 
+*Made using [Metric](https://github.com/panda-official/metric), Boost, Lapack and C++17.*
+
 The general idea that lies in the core of my way of solving task is:
 
 - Take pre-trained *Word2Vec* vocabularies for english and russian
-- Cluster it using *Metric* framework to a big number of classes 
+- Cluster it using [*Metric*](https://github.com/panda-official/metric) framework to a big number of classes 
 - For each text calculate embeddings: 
 
   - create zeros vector for text embeddings with size equals to number of clusters in the *Word2Vec* vocab
@@ -47,7 +49,7 @@ In this section I extract dates, calculate average and if average date is fresh,
 
 ***Futher improvements:***
 - Use NER for found answer for "*What?*" question.
-- Calculate entropy for dates using *Metric* framework.
+- Calculate entropy for dates using [*Metric*](https://github.com/panda-official/metric) framework.
 - Tune param `freshness_days`
 
 
@@ -55,7 +57,7 @@ In this section I extract dates, calculate average and if average date is fresh,
 
 Here I calculate embeddings (described on the top) for the each text, 
 calculate embeddings for categories (each category is small text with tags). 
-Then using *Metric* framework I calculate *cosine distance* between text's embeddings and categories embeddings. 
+Then using [*Metric*](https://github.com/panda-official/metric) framework I calculate *cosine distance* between text's embeddings and categories embeddings. 
 Min distance means that text belongs to that category. 
 But if distance more than value from `category_detect_levels` for found category, next category will be checked. 
 If all distances more than values from `category_detect_levels` it means that category is "other".
@@ -107,7 +109,7 @@ Then vocabs can be cut and processed to use with current client with some tools:
 
 ## Compile using CMake
 
-*You need Metric, Boost, Lapack and C++17 support to compile.*
+*You need [Metric](https://github.com/panda-official/metric), Boost, Lapack and C++17 support to compile.*
 
 _Windows_
 
