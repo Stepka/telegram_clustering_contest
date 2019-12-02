@@ -429,7 +429,10 @@ int main(int argc, char *argv[])
 		size_t num_language_samples = 300;
 		double language_score_min_level = 0.1;
 		
-		auto found_languages = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);	
+		auto found_languages = language_detector.detect_language(all_content, num_language_samples, language_score_min_level);			
+		
+		std::size_t found_filename_start;
+		std::string filename;
 
 		// Prepare result
 		result = json();
@@ -446,7 +449,10 @@ int main(int argc, char *argv[])
 				{
 					selected_language_articles[k] = i->first;
 					selected_language_content[k] = all_content[k];
-					lang_item["articles"].push_back(k);
+					
+					found_filename_start = k.find_last_of("/\\");
+					filename = k.substr(found_filename_start + 1);
+					lang_item["articles"].push_back(filename);
 				}
 				result.push_back(lang_item);
 			}			
@@ -525,7 +531,10 @@ int main(int argc, char *argv[])
 		auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales);
 	
 		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
-	
+		
+		std::size_t found_filename_start;
+		std::string filename;
+
 		// Prepare result
 		result = {		
 			{"articles", std::vector<std::string>()}
@@ -539,7 +548,10 @@ int main(int argc, char *argv[])
 				{
 					selected_news_articles[k] = selected_language_articles[k];
 					selected_news_content[k] = all_content[k];
-					result["articles"].push_back(k);
+
+					found_filename_start = k.find_last_of("/\\");
+					filename = k.substr(found_filename_start + 1);
+					result["articles"].push_back(filename);
 				}
 			}		
 		}
@@ -576,6 +588,9 @@ int main(int argc, char *argv[])
 
 		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content, category_detect_levels); 
 	
+		std::size_t found_filename_start;
+		std::string filename;
+
 		result = json();
 		for (auto i = categories_articles.begin(); i != categories_articles.end(); i++) 
 		{ 
@@ -604,7 +619,9 @@ int main(int argc, char *argv[])
 				{
 					articles_by_category[k] = categories[english_language][i->first][0];
 				}
-				category_item["articles"].push_back(k);
+				found_filename_start = k.find_last_of("/\\");
+				filename = k.substr(found_filename_start + 1);
+				category_item["articles"].push_back(filename);
 			}
 			result.push_back(category_item);
 		}
@@ -636,6 +653,9 @@ int main(int argc, char *argv[])
 		std::size_t minpts = 2;
 		clustered_articles = news_clusterizer.clusterize(selected_news_articles, selected_news_content, title_articles, eps, minpts); 
 	
+		std::size_t found_filename_start;
+		std::string filename;
+
 		result = json();
 		for (auto i = clustered_articles.begin(); i != clustered_articles.end(); i++) 
 		{ 
@@ -645,7 +665,9 @@ int main(int argc, char *argv[])
 			};
 			for (auto k : i->second)
 			{
-				thread_item["articles"].push_back(k);
+				found_filename_start = k.find_last_of("/\\");
+				filename = k.substr(found_filename_start + 1);
+				thread_item["articles"].push_back(filename);
 			}
 			result.push_back(thread_item);
 		}
@@ -675,6 +697,9 @@ int main(int argc, char *argv[])
 		auto ranged_articles = news_ranger.arrange(clustered_articles, found_dates, ner_articles); 
 		std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::vector<std::string>>>> ranged_articles_by_categories;
 	
+		std::size_t found_filename_start;
+		std::string filename;
+
 		result = json();
 		for (auto thread : ranged_articles)
 		{
@@ -716,7 +741,9 @@ int main(int argc, char *argv[])
 						{
 							thread_item["category"] = articles_by_category[h];
 						}
-						thread_item["articles"].push_back(h);
+						found_filename_start = h.find_last_of("/\\");
+						filename = h.substr(found_filename_start + 1);
+						thread_item["articles"].push_back(filename);
 					}
 					top_item["threads"].push_back(thread_item);
 				}
@@ -731,8 +758,6 @@ int main(int argc, char *argv[])
 		if (mode == TOP_MODE)
 		{
 			std::cout << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
-			std::ofstream o("result.json");
-			o << std::setw(4) << result.dump(4, ' ', false, json::error_handler_t::replace) << std::endl;
 		}
 	}
 	
