@@ -572,7 +572,7 @@ int main(int argc, char *argv[])
 		std::unordered_map<news_clustering::Language, std::vector<float>> category_detect_levels;
 		// society | economy | technology | sports | entertainment | science
 		category_detect_levels[english_language] = {0.02, 0.02, 0.02, 0.02, 0.02, 0.02};
-		category_detect_levels[russian_language] = {0.02, 0.02, 0.15, 0.02, 0.15, 0.15};
+		category_detect_levels[russian_language] = {0.05, 0.02, 0.15, 0.02, 0.15, 0.15};
 
 		auto categories_articles = categories_detector.detect_categories(selected_language_articles, selected_news_content, category_detect_levels); 
 	
