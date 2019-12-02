@@ -145,18 +145,22 @@ namespace news_clustering {
 				if (i > 0 && i < content.size() - 1)
 				{
 					date = check_if_date(content[i - 1], content[i], content[i + 1], language);
+					//std::cout << content[i - 1] << "." << content[i] << "." << content[i + 1] << std::endl;
 				}
 				else if (i == 0)
 				{
 					date = check_if_date("", content[i], content[i + 1], language);
+					//std::cout << "." << content[i] << "." << content[i + 1] << std::endl;
 				}
 				else if (i == content.size() - 1)
 				{
 					date = check_if_date(content[i - 1], content[i], "", language);
+					//std::cout << content[i - 1] << "." << content[i] << "." << std::endl;
 				}
 
 				if (date.size() == 3)
 				{
+					//std::cout << date[0] << "." << date[1] << "." << date[2] << std::endl;
 					dates.push_back(date);
 					i += 2;
 				}

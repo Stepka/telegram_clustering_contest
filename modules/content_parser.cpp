@@ -156,17 +156,36 @@ namespace news_clustering {
 
 	std::unordered_map<std::string, int> ContentParser::read_vocabulary_and_tag(const std::string& filename, const std::locale& locale, int start_tag, int end_tag)
 	{
-		std::unordered_map<std::string, std::string> vocab = read_simple_vocabulary(filename, locale);
 		std::unordered_map<std::string, int> map; 
+		
+		std::vector<std::string> words;
+		std::string word;
+
+		std::fstream fin;
+		fin.imbue(locale);
+
+		fin.open(filename, std::ios::in);
+		
+		if (!fin.is_open())
+		{
+			std::cerr << "Cannot open file: " << filename << std::endl;
+		}
+		else
+		{
+			while (getline(fin, word))
+			{
+				words.push_back(word);
+			}
+		}
 
 		int i = start_tag;
-		for (auto w = vocab.begin(); w != vocab.end(); w++) 
+		for (auto w : words) 
 		{
 			if (i > end_tag)
 			{
 				i = start_tag;
 			}
-			map[w->first] = i;
+			map[w] = i;
 			i++;
 		}
 

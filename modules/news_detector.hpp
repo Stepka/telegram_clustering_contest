@@ -24,7 +24,8 @@ namespace news_clustering {
 
 		NewsDetector(
 			std::vector<Language>& languages, 
-			std::unordered_map<news_clustering::Language, std::locale>& locales
+			std::unordered_map<news_clustering::Language, std::locale>& locales, 
+			std::vector<int>& today
 		);
 
 		/**
@@ -35,7 +36,8 @@ namespace news_clustering {
 			std::unordered_map<std::string, news_clustering::Language>& file_names, 
 			std::unordered_map<std::string, std::vector<std::string>>& contents, 
 			std::unordered_map<std::string, std::vector<std::vector<int>>>& dates, 
-			std::unordered_map<std::string, std::vector<std::string>>& name_entities
+			std::unordered_map<std::string, std::vector<std::string>>& name_entities, 
+			int freshness_days
 		);
 
 	private:
@@ -43,6 +45,8 @@ namespace news_clustering {
 		ContentParser content_parser = news_clustering::ContentParser();
 		std::vector<Language>& languages_;
 		std::unordered_map<news_clustering::Language, std::locale>& locales_;
+
+		std::vector<int>& today_;
 	};
 
 }  // namespace news_clustering

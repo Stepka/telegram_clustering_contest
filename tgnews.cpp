@@ -528,9 +528,13 @@ int main(int argc, char *argv[])
 		t0 = std::chrono::steady_clock::now();
 		t1 = std::chrono::steady_clock::now();
 	
-		auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales);
+		auto news_detector = news_clustering::NewsDetector(languages, language_boost_locales, today);
+		
+		/// Hyperparams
+		// News detection consts
+		int freshness_days = 180;
 	
-		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles); 
+		auto news_articles = news_detector.detect_news(selected_language_articles, selected_language_content, found_dates, ner_articles, freshness_days); 
 		
 		std::size_t found_filename_start;
 		std::string filename;
@@ -553,7 +557,7 @@ int main(int argc, char *argv[])
 					filename = k.substr(found_filename_start + 1);
 					result["articles"].push_back(filename);
 				}
-			}		
+			}	
 		}
 
 		t2 = std::chrono::steady_clock::now();
