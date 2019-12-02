@@ -74,7 +74,7 @@ namespace news_clustering {
 		
 		for (auto i = text_embeddings.begin(); i != text_embeddings.end(); i++) 
 		{
-			metric::Matrix<std::vector<int>, metric::CosineInverted<float>> distance_matrix(i->second);
+			metric::Matrix<std::vector<int>, metric::Euclidian<float>> distance_matrix(i->second);
 
 			auto[assignments, seeds, counts] = metric::dbscan(distance_matrix, eps, minpts);
 
