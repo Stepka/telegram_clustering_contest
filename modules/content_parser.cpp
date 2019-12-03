@@ -8,11 +8,30 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #ifndef _NEWS_CLUSTERING_CONTENT_PARSER_CPP
 #define _NEWS_CLUSTERING_CONTENT_PARSER_CPP
 
+#if defined(__linux__)
+	#include <dirent.h>
+	#include <stdint.h>
+
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+#endif
+
+#if defined(_WIN64)
+	#include <filesystem>
+#endif
+
 #include "content_parser.hpp"
 #include <vector>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/locale.hpp>
 
+
+#if defined(_WIN64)
+namespace  fs = std::filesystem;
+#endif
 
 namespace news_clustering {
 	
@@ -190,6 +209,103 @@ namespace news_clustering {
 		}
 
 		return map;
+	}
+
+	
+	std::vector<std::string> ContentParser::readFilePaths(std::string dirname, bool recursively)
+	{
+		std::vector<std::string> path_names;
+
+		#if defined(__linux__)
+			DIR *dp;
+			struct dirent *dirp;
+			if((dp  = opendir(dirname.c_str())) == NULL) {
+				std::cout << "Error(" << errno << ") opening " << dirname << std::endl;
+				return std::vector<std::string>();
+			}
+
+			while ((dirp = readdir(dp)) != NULL) 
+			{
+				if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
+				{
+					bool is_dir;
+					#ifdef _DIRENT_HAVE_D_TYPE
+					if (dirp->d_type != DT_UNKNOWN && dirp->d_type != DT_LNK) {
+						// don't have to stat if we have d_type info, unless it's a symlink (since we stat, not lstat)
+						is_dir = (dirp->d_type == DT_DIR);
+					}
+					else
+					#endif
+					{  // the only method if d_type isn't available,
+						// otherwise this is a fallback for FSes where the kernel leaves it DT_UNKNOWN.
+						struct stat stbuf;
+						// stat follows symlinks, lstat doesn't.
+						stat(dirp->d_name, &stbuf);              // TODO: error check
+						is_dir = S_ISDIR(stbuf.st_mode);
+					}
+
+					if (is_dir) {
+						if (recursively)
+						{
+							std::vector<std::string> dir_files = readFilePaths(dirname + "/" + std::string(dirp->d_name), recursively);
+							path_names.insert(path_names.end(), dir_files.begin(), dir_files.end());
+						}
+					}
+					else
+					{
+						path_names.push_back(dirname + "/" + std::string(dirp->d_name));
+					}
+				}
+			}
+			closedir(dp);
+		#endif
+	
+		#if defined(_WIN64)
+			for (const auto & entry : fs::directory_iterator(dirname))
+			{
+				std::error_code ec; // For using the non-throwing overloads of functions below.
+				if (fs::is_directory(entry.path(), ec))
+				{ 
+					if (recursively)
+					{
+						std::vector<std::string> dir_files = readFilePaths(entry.path().string(), recursively);
+						path_names.insert(path_names.end(), dir_files.begin(), dir_files.end());
+					}
+				}
+				if (ec)
+				{
+					std::cerr << "Error in is_directory: " << ec.message();
+				}
+				if (fs::is_regular_file(entry.path(), ec))
+				{
+					path_names.push_back(entry.path().string());
+				}
+				if (ec) 
+				{
+					std::cerr << "Error in is_regular_file: " << ec.message();
+				}
+			}
+		#endif
+
+		return path_names;
+	}
+
+
+	std::vector<std::string> ContentParser::selectHtmlFiles(std::string dirname, bool recursively)
+	{
+		std::vector<std::string> files_paths;
+
+		std::vector<std::string> all_paths = readFilePaths(dirname);
+
+		for (auto fp : all_paths)
+		{
+			if (fp.size() > 5 && fp.substr(fp.size() - 5) == ".html")
+			{
+				files_paths.push_back(fp);
+			}
+		}
+
+		return files_paths;
 	}
 
 }  // namespace news_clustering

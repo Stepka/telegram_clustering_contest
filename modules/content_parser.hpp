@@ -8,6 +8,7 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 #ifndef _NEWS_CLUSTERING_CONTENT_PARSER_HPP
 #define _NEWS_CLUSTERING_CONTENT_PARSER_HPP
 
+#include <unordered_map>
 
 namespace news_clustering {
 
@@ -57,6 +58,18 @@ namespace news_clustering {
 		 * @return 
 		 */
 		std::vector<std::string> split_string(std::string& line, char delimeter = ' ', int min_word_size = 1);
+		
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::string> readFilePaths(std::string dirname, bool recursively = true);
+		
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively = true);
 	};
 
 }  // namespace news_clustering

@@ -6,27 +6,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 Copyright (c) 2019 Stepan Mamontov (Panda Team)
 */
 
-
-#if defined(__linux__)
-	#include <dirent.h>
-	#include <stdint.h>
-
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-#endif
-
-#if defined(_WIN64)
-	#include <filesystem>
-#endif
-
 #include <vector>
 #include <iostream>
-#include <fstream>
 #include <ctime>
-#include <boost/algorithm/string.hpp>
-#include <boost/locale.hpp>
 
 #include "modules/language_detector.hpp"
 #include "modules/name_entities_recognizer.hpp"
@@ -42,10 +24,6 @@ Copyright (c) 2019 Stepan Mamontov (Panda Team)
 
 using json = nlohmann::json;
 
-#if defined(_WIN64)
-namespace  fs = std::filesystem;
-#endif
-
 
 const std::string LANGUAGES_MODE_COMMAND = "languages";
 const std::string NEWS_MODE_COMMAND = "news";
@@ -54,107 +32,6 @@ const std::string THREAD_MODE_COMMAND = "threads";
 const std::string TOP_MODE_COMMAND = "top";
 
 enum Mode { UNKNOWN_MODE, LANGUAGES_MODE, NEWS_MODE, CATEGORIES_MODE, THREAD_MODE, TOP_MODE };
-
-
-////////////////////////////
-
-
-std::vector<std::string> readFilePaths(std::string dirname, bool recursively = true)
-{
-	std::vector<std::string> path_names;
-
-	#if defined(__linux__)
-		DIR *dp;
-		struct dirent *dirp;
-		if((dp  = opendir(dirname.c_str())) == NULL) {
-			std::cout << "Error(" << errno << ") opening " << dirname << std::endl;
-			return std::vector<std::string>();
-		}
-
-		while ((dirp = readdir(dp)) != NULL) 
-		{
-			if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
-			{
-				bool is_dir;
-				#ifdef _DIRENT_HAVE_D_TYPE
-				if (dirp->d_type != DT_UNKNOWN && dirp->d_type != DT_LNK) {
-					// don't have to stat if we have d_type info, unless it's a symlink (since we stat, not lstat)
-					is_dir = (dirp->d_type == DT_DIR);
-				}
-				else
-				#endif
-				{  // the only method if d_type isn't available,
-					// otherwise this is a fallback for FSes where the kernel leaves it DT_UNKNOWN.
-					struct stat stbuf;
-					// stat follows symlinks, lstat doesn't.
-					stat(dirp->d_name, &stbuf);              // TODO: error check
-					is_dir = S_ISDIR(stbuf.st_mode);
-				}
-
-				if (is_dir) {
-					if (recursively)
-					{
-						std::vector<std::string> dir_files = readFilePaths(dirname + "/" + std::string(dirp->d_name), recursively);
-						path_names.insert(path_names.end(), dir_files.begin(), dir_files.end());
-					}
-				}
-				else
-				{
-					path_names.push_back(dirname + "/" + std::string(dirp->d_name));
-				}
-			}
-		}
-		closedir(dp);
-	#endif
-	
-	#if defined(_WIN64)
-		for (const auto & entry : fs::directory_iterator(dirname))
-		{
-			std::error_code ec; // For using the non-throwing overloads of functions below.
-			if (fs::is_directory(entry.path(), ec))
-			{ 
-				if (recursively)
-				{
-					std::vector<std::string> dir_files = readFilePaths(entry.path().string(), recursively);
-					path_names.insert(path_names.end(), dir_files.begin(), dir_files.end());
-				}
-			}
-			if (ec)
-			{
-				std::cerr << "Error in is_directory: " << ec.message();
-			}
-			if (fs::is_regular_file(entry.path(), ec))
-			{
-				path_names.push_back(entry.path().string());
-			}
-			if (ec) 
-			{
-				std::cerr << "Error in is_regular_file: " << ec.message();
-			}
-		}
-	#endif
-
-	return path_names;
-}
-
-
-std::vector<std::string> selectHtmlFiles(std::string dirname, bool recursively = true)
-{
-	std::vector<std::string> files_paths;
-
-	std::vector<std::string> all_paths = readFilePaths(dirname);
-
-	for (auto fp : all_paths)
-	{
-		if (fp.size() > 5 && fp.substr(fp.size() - 5) == ".html")
-		{
-			files_paths.push_back(fp);
-		}
-	}
-
-	return files_paths;
-}
-
 
 ////////////////////////////
 
@@ -318,13 +195,11 @@ int main(int argc, char *argv[])
 	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
 	//std::cerr << "Num cores: " << concurentThreadsSupported << std::endl;
 	std::mutex mutex_;
-
-
-	auto file_names = selectHtmlFiles(data_path);
-	//std::cerr << "Num files: " << file_names.size() << std::endl;  
-
-	
+		
 	auto content_parser = news_clustering::ContentParser();
+
+	auto file_names = content_parser.selectHtmlFiles(data_path);
+	//std::cerr << "Num files: " << file_names.size() << std::endl;  
 	
 	Semaphore sem;
 	ThreadPool pool(concurentThreadsSupported);

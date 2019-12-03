@@ -26,7 +26,7 @@ I chose technologies with the following criteria (order is important):
 - Use multithreading and batch sampling
 - Parse html to omit tags etc.
 
-### Tasks
+## Tasks
 
 #### **languages**
 
@@ -88,7 +88,7 @@ Here I take result from clustering of texts and sort it by importantcy.
 I suppose that thread is important if it fresh and thread has a lot of publications, i. e. 
 thread has a lot of articles incide. Combination of that two params is sort criteria. 
 
-### Tools
+## Tools
 
 Client use predefined and pretrained vocabularies. 
 
